@@ -1,0 +1,98 @@
+# Сборка самодостаточного APK мобильного приложения в облаке.
+# Локально Node/JDK/Android SDK нет.
+#
+# Почему не `npx react-native init`: CLI падает в CI на шаге копирования
+# шаблона (пытается ставить CocoaPods). Вместо него распаковываем
+# официальный шаблон прямо из npm-пакета react-native — тот же результат,
+# но полностью детерминированно.
+#
+# Почему assembleRelease, а не assembleDebug: debug-APK ищет Metro-сервер
+# на устройстве и без него показывает красный экран. Release собирается с
+# зашитым JS-бандлом; шаблон 0.74 подписывает release debug-ключом,
+# поэтому APK ставится на любое устройство как есть.
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/android-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Scaffold RN project from official template
+        run: |
+          curl -sSL -o rn.tgz https://registry.npmjs.org/react-native/-/react-native-0.74.7.tgz
+          mkdir RustCompanionMobile
+          tar xzf rn.tgz -C /tmp
+          cp -r /tmp/package/template/. RustCompanionMobile/
+          rm RustCompanionMobile/App.tsx
+
+      # Наши исходники поверх шаблона (index.js шаблона регистрирует App)
+      - name: Copy app sources
+        run: |
+          cp mobile-app/*.js RustCompanionMobile/
+          mkdir -p RustCompanionMobile/data
+          cp mobile-app/data/*.js RustCompanionMobile/data/
+
+      - name: Install dependencies
+        working-directory: RustCompanionMobile
+        run: |
+          npm install
+          # Версии зафиксированы как в mobile-app/package.json: AsyncStorage
+          # 2.x требует minSdk 24, а шаблон 0.74 собран под 23
+          npm install @react-native-async-storage/async-storage@^1.24.0 @react-native-clipboard/clipboard@^1.14.1 react-native-linear-gradient@^2.8.3 react-native-image-picker@^7.1.2
+
+      # JDK 17 нужен AGP 8 из шаблона 0.74; кэш включается здесь,
+      # когда gradle-файлы уже существуют
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      # Два патча манифеста:
+      # 1) cleartext — ws:// в прямом режиме Rust+;
+      # 2) доступ к галерее для фона приложения (Android 13+ читает фото
+      #    через системный Photo Picker без разрешений, старые версии —
+      #    через READ_EXTERNAL_STORAGE). Вставляем перед </manifest> —
+      #    эта строка есть в шаблоне дословно.
+      - name: Manifest patches (cleartext + photo picker permissions)
+        run: |
+          sed -i 's/<application/<application\n      android:usesCleartextTraffic="true"/' RustCompanionMobile/android/app/src/main/AndroidManifest.xml
+          sed -i 's#</manifest>#  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />\n  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />\n</manifest>#' RustCompanionMobile/android/app/src/main/AndroidManifest.xml
+
+      # Имя и иконка приложения: шаблон 0.74 из npm-тарбола содержит
+      # дефолтные "Hello App Display Name" и робота-андроида. Кладём
+      # наши mipmap-PNG (S-eye viewer) поверх и правим strings.xml.
+      # mipmap-anydpi-v26 с adaptive-иконкой (ic_bg + ic_fg) перекрывает
+      # PNG на Android 8+, PNG остаются для старых версий и лаунчеров.
+      - name: App name + launcher icons (S-eye viewer)
+        run: |
+          cp -r mobile-app/android-res/mipmap-* RustCompanionMobile/android/app/src/main/res/
+          # в шаблоне у app_name есть атрибут moduleConfig="true" — ловим обе формы
+          sed -i 's|<string[^>]*name="app_name">.*</string>|<string name="app_name">S-eye viewer</string>|' RustCompanionMobile/android/app/src/main/res/values/strings.xml
+          grep -o '<string[^>]*name="app_name">[^<]*</string>' RustCompanionMobile/android/app/src/main/res/values/strings.xml
+
+      - name: Build APK (release, debug-signed)
+        working-directory: RustCompanionMobile/android
+        run: chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RustCompanion-apk
+          path: RustCompanionMobile/android/app/build/outputs/apk/release/app-release.apk

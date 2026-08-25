@@ -1,0 +1,14 @@
+{
+  "name": "rust-companion-pc-client",
+  "version": "0.1.0",
+  "description": "PC-клиент: держит соединение с Rust+ и синхронизирует статус команды в Firebase",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@liamcottle/rustplus.js": "^2.6.3",
+    "firebase-admin": "^12.1.0",
+    "dotenv": "^16.4.5"
+  }
+}

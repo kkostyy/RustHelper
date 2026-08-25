@@ -1,0 +1,15 @@
+# Локальные секреты pc-client — НИКОГДА не коммитить
+pc-client/.env
+pc-client/serviceAccountKey.json
+pc-client/entities.json
+
+# Зависимости / локально сгенерированные проекты
+node_modules/
+RustCompanionMobile/
+
+# Локальные настройки инструментов
+.claude/
+
+# Мусор ОС
+Thumbs.db
+.DS_Store

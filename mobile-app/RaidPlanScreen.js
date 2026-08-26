@@ -386,18 +386,10 @@ export function RaidPlanScreen({ lang = 'ru' }) {
 /* ══════════════ Сырые компоненты ══════════════ */
 
 function RawView({ lang, totals, sulfurTotal, back }) {
-  // разворачиваем промежуточные ингредиенты (взрывчатка, бобовая) в сырье
-  const raw = {};
-  const addRaw = (k, n) => { raw[k] = (raw[k] || 0) + n; };
-  const expand = (k, n) => {
-    if (SUB_RECIPES[k]) {
-      SUB_RECIPES[k].forEach((ing) => expand(ing.k, ing.n * n));
-    } else {
-      addRaw(k, n);
-    }
-  };
   const usedAmmo = Object.entries(totals).filter(([, n]) => n > 0);
-
+  const raw = {}; const addRaw = (k, n) => { raw[k] = (raw[k] || 0) + n; };
+  const expand = (k, n) => { if (SUB_RECIPES && SUB_RECIPES[k]) { SUB_RECIPES[k].forEach((ing) => expand(ing.k, ing.n * n)); } else { addRaw(k, n); } };
+  usedAmmo.forEach(([id, n]) => { (RECIPES[id] || RECIPES.explo) && (RECIPES[id] || []).forEach((ing) => expand(ing.k, ing.n * n)); });
   return (
     <GlassCard>
       <Text style={st.viewTitle}>{lang === 'ru' ? '⬆ СЫРЫЕ КОМПОНЕНТЫ' : '⬆ RAW COMPONENTS'}</Text>
@@ -409,25 +401,46 @@ function RawView({ lang, totals, sulfurTotal, back }) {
         const rec = RECIPES[id];
         if (!rec) return null;
         return (
-          <View key={id} style={st.rawCard}>
-            <Text style={st.rawName}>{a.ic + ' ' + (lang === 'ru' ? a.ru : a.en) + ' ×' + fmtTh(n)}</Text>
-            <Text style={st.rawLine}>
-              {lang === 'ru' ? 'крафт: ' : 'craft: '}
-              {rec.map((ing) => ing.n + '× ' + (lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en)).join(' + ')}
-            </Text>
-            <Text style={st.rawLine}>
-              {lang === 'ru' ? 'итого: ' : 'total: '}
-              {rec.map((ing) => ing.n * n + '× ' + (lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en)).join(' · ')}
-            </Text>
+          <View key={id} style={st.treeRoot}>
+            {/* корень — боеприпас */}
+            <View style={st.treeNode}>
+              <View style={st.treeIconWrap}><Image source={require(a.icon || '../docs/items/ammo.rifle.explosive.png')} style={{ width: 36, height: 36, borderRadius: 8, resizeMode: 'contain' }} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={st.treeName}>{(lang === 'ru' ? a.ru : a.en) + ' ×' + fmtTh(n)}</Text>
+                <Text style={st.treeLine}>{lang === 'ru' ? 'крафт →' : 'craft →'}</Text>
+              </View>
+            </View>
+            {/* ветки первого уровня */}
+            <View style={st.treeBranches}>
+              {rec.map((ing) => (
+                <View key={ing.k} style={st.treeBranch}>
+                  <View style={{ width: 3, backgroundColor: eventPalette.orange, borderRadius: 2 }} />
+                  <Image source={require(ING[ing.k].icon || '../docs/items/component.box.sulfur.large.png')} style={{ width: 28, height: 28, borderRadius: 6, resizeMode: 'contain', marginLeft: 6 }} />
+                  <Text style={st.branchTxt}>{ing.n + '× ' + (lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en) + (ing.k === 'explo' ? ' → ' + (lang === 'ru' ? 'порох + сера + лезвие + мусор' : 'powder+ sulfur+ blade+ trash') : '')}</Text>
+                </View>
+              ))}
+            </View>
+            {/* развёрнуто взрывчатка */}
+            {id === 'c4' && (
+              <View style={st.treeSub}>
+                <Text style={st.subHead}>{lang === 'ru' ? '→ Взрывчатка разворачивается:' : '→ Explosives expand to:'}</Text>
+                {RECIPES.explo.map((ing) => (
+                  <View key={ing.k} style={st.subRow}>
+                    <Text style={st.subN}>{ing.n + '×'}</Text>
+                    <Image source={require(ING[ing.k].icon || '../docs/items/component.box.sulfur.large.png')} style={{ width: 22, height: 22, borderRadius: 5, resizeMode: 'contain', marginRight: 6 }} />
+                    <Text style={st.subName}>{lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         );
       })}
 
-      {/* итоговое сырье (промежуточные развернуты) */}
+      {/* итоговое сырье */}
       {!!usedAmmo.length && (
         <View style={st.rawTotals}>
           <Text style={st.groupTitle}>{lang === 'ru' ? 'ИТОГО СЫРЬЯ (≈)' : 'RAW TOTALS (≈)'}</Text>
-          {usedAmmo.forEach(([id, n]) => { RECIPES[id] && RECIPES[id].forEach((ing) => expand(ing.k, ing.n * n)); })}
           {Object.entries(raw).map(([k, n]) => (
             <View key={k} style={st.rawRow}>
               <Text style={st.rawRowName}>{ING[k].ic + '  ' + (lang === 'ru' ? ING[k].ru : ING[k].en)}</Text>
@@ -449,11 +462,6 @@ function RawView({ lang, totals, sulfurTotal, back }) {
       <TouchableOpacity style={st.backBtn2} onPress={back}>
         <Text style={st.backTxt2}>← {lang === 'ru' ? 'К плану' : 'Back to plan'}</Text>
       </TouchableOpacity>
-      <Text style={st.disclaimer}>
-        {lang === 'ru'
-          ? '≈ Рецепты ванильные; выход пороха 30 серы + 20 угля → 10 пороха. На модифицированных серверах рецепты другие.'
-          : '≈ Vanilla recipes; gun powder: 30 sulfur + 20 charcoal → 10 powder. Modded servers use different recipes.'}
-      </Text>
     </GlassCard>
   );
 }
@@ -1059,4 +1067,17 @@ const st = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
   },
+  treeRoot: { marginBottom: 14, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  treeNode: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  treeIconWrap: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(251,146,60,0.12)', justifyContent: 'center', alignItems: 'center' },
+  treeName: { color: colors.textPrimary, fontSize: 13, fontWeight: '800' },
+  treeLine: { color: colors.textMuted, fontSize: 10 },
+  treeBranches: { marginTop: 8, paddingLeft: 6 },
+  treeBranch: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  branchTxt: { color: colors.textSecondary, fontSize: 11, flex: 1 },
+  treeSub: { marginTop: 6, paddingLeft: 8, borderLeftWidth: 2, borderLeftColor: eventPalette.orange, borderRadius: 4 },
+  subHead: { color: eventPalette.orange, fontSize: 11, fontWeight: '700', marginBottom: 4 },
+  subRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  subN: { color: colors.textSecondary, fontSize: 10, fontWeight: '700', width: 32 },
+  subName: { color: colors.textPrimary, fontSize: 11 },
 });

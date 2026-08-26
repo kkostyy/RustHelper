@@ -90,7 +90,7 @@ function bestAmmo(b, hp, allowWb3) {
 const ECO_TOOLS = [
   { id: 'rock',      ic: '🪨', icon: '../docs/items/barricade.stone.png', ru: 'Камень',           en: 'Rock',              swing: 1.0, dmg: { wood: 4,  stone: 1,  metal: 1,  hqm: 1 } },
   { id: 'sthatchet', ic: '🪓', icon: '../docs/items/box.wooden.json', ru: 'Каменный топор',   en: 'Stone Hatchet',     swing: 1.0, dmg: { wood: 10, stone: 3,  metal: 2,  hqm: 1 } },
-  { id: 'hatchet',   ic: '🪓', icon: '../docs/items/hatchet.placeholder.png', ru: 'Топор',            en: 'Hatchet',           swing: 1.0, dmg: { wood: 15, stone: 4,  metal: 3,  hqm: 2 } },
+  { id: 'hatchet',   ic: '🪓', icon: '../docs/items/box.wooden.large.component.charcoal.skin.png', ru: 'Топор',            en: 'Hatchet',           swing: 1.0, dmg: { wood: 15, stone: 4,  metal: 3,  hqm: 2 } },
   { id: 'stpick',    ic: '⛏️', ru: 'Каменная кирка',   en: 'Stone Pickaxe',     swing: 1.0, dmg: { wood: 6,  stone: 6,  metal: 3,  hqm: 2 } },
   { id: 'pick',      ic: '⛏️', ru: 'Кирка',            en: 'Pickaxe',           swing: 1.0, dmg: { wood: 8,  stone: 12, metal: 5,  hqm: 3 } },
   { id: 'sicepick',  ic: '⛏️', ru: 'Самод. ледоруб',   en: 'Salvaged Icepick',  swing: 0.9, dmg: { wood: 10, stone: 16, metal: 7,  hqm: 4 } },

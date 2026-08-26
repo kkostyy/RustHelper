@@ -6,10 +6,11 @@ export function calcRecycle(components) {
   (components.gears || 0) * 2; // заглушка-подсчёт
   return { metal, hqMetal: hq, scrap };
 }
-// Углубление (medленно): базовые значения переработки (v2252)
-// 1 шестерня ~ 2 металла, 1 пружина ~ 1 металл, корпус ~ 3 металла / 1 скрап
+// Углубление: значения переработки сверены с rusthelp.com (2026-08-26).
+// Базовый рециклер — обычный зелёный; красный даёт ×~1.5.
+// ВАЖНО: HQM из шестерён НЕ выходит ни на одном типе рециклера!
 export const RECYCLE_RULES = {
-  gear: { metal: 2, hq: 0.2, scrap: 0.1 },
-  spring: { metal: 1, hq: 0.1, scrap: 0.05 },
-  body: { metal: 3, hq: 0.4, scrap: 0.3 }
+  gear: { metal: 12, hq: 0, scrap: 10 },
+  spring: { metal: 0, hq: 1, scrap: 10 },
+  rifleBody: { metal: 0, hq: 1, scrap: 25 }
 };

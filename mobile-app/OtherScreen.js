@@ -31,7 +31,7 @@ import {
   SulfurConverterScreen,
   ElectricityScreen,
 } from './ToolsScreen';
-import { RaidPlanScreen } from './RaidPlanScreen';
+import { RaidPlanScreen, EcoRaidScreen, CustomRaidScreen } from './RaidPlanScreen';
 import { AdminPanelScreen } from './AdminPanelScreen';
 import DecayCalcScreen from './DecayCalcScreen';
 import RecyclerMachineScreen from './RecyclerMachineScreen';
@@ -130,7 +130,9 @@ const INFO_TOPICS = [
 
 // Инструменты — тоже отдельные экраны
 const TOOL_TOPICS = [
-  { id: 'raid', icon: '💣', color: eventPalette.red, title: { ru: 'Рейд-калькулятор (Legacy)', en: 'Raid Calculator (Legacy)' }, desc: { ru: 'План по постройкам + сырые компоненты + ноды', en: 'Building plan + raw components + nodes' } },
+  { id: 'raid', icon: '💣', color: eventPalette.red, title: { ru: 'Рейд Кальк (Legacy)', en: 'Raid Calc (Legacy)' }, desc: { ru: 'План по постройкам + сырые компоненты + ноды', en: 'Building plan + raw components + nodes' } },
+  { id: 'raidEco', icon: '🌿', color: eventPalette.green, title: { ru: 'Рейд Кальк Эко (Legacy)', en: 'Eco Raid Calc (Legacy)' }, desc: { ru: 'Инструментами: удары и время по постройкам', en: 'Melee eco raiding: hits and time per structure' } },
+  { id: 'raidCustom', icon: '🧩', color: eventPalette.blue, title: { ru: 'Рейд Кальк Кастом (Legacy)', en: 'Custom Raid Calc (Legacy)' }, desc: { ru: 'Бумы по каждому строению с живым ХП', en: 'Apply explosives per structure with live HP' } },
   { id: 'sulfur', icon: '🟡', color: '#e0a800', title: { ru: 'Конвертер серы', en: 'Sulfur Converter' }, desc: { ru: 'Запас серы → ракеты, C4, патроны', en: 'Sulfur stock → rockets, C4, ammo' } },
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Копилка дверных кодов + счётчик перебора', en: 'Door-code vault + brute-force counter' } },
   { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Скрещивание (ферма)', en: 'Crossbreeding (Farm)' }, desc: { ru: 'Клоны, цель и рекомендованные планы', en: 'Clones, target & recommended plans' } },
@@ -581,6 +583,8 @@ const INFO_SCREENS = {
 
 const TOOL_SCREENS = {
   raid: RaidPlanScreen,
+  raidEco: EcoRaidScreen,
+  raidCustom: CustomRaidScreen,
   sulfur: SulfurConverterScreen,
   codebreaker: CodeBreakerScreen,
   genes: GenesScreen,

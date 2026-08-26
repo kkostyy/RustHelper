@@ -1,13 +1,16 @@
 // ─────────────────────────────────────────────────────────
-// 💣 РЕЙД КАЛЬК (по макетам references) — три вида:
-//   план      — табы «Рекомендуется / Без ВБ 3», строки построек,
-//               «лучший вариант» боеприпаса, итоговая строка;
-//   raw       — «Сырые компоненты»: во что разворачивается счёт
-//               (C4 = 20 взрывчатки + 5 лезвий + 2 тех. мусора…);
-//   nodes     — «Калькулятор нод»: удары по ноде инструментами
-//               и добыча с ноды с бонусом чая (+0/10/20/30%).
-// Все цифры ≈ ванильные (rusthelp.com + общепринятые таблицы),
-// урон зависит от материала и патчей — сверяй на своём сервере.
+// 💣 РЕЙД-КАЛЬК (Legacy) — три экрана по макетам references:
+//   RaidPlanScreen   — план: табы «Рекомендуется / Без ВБ 3»,
+//                      строки построек с лучшим боеприпасом,
+//                      Итого, сырые компоненты, калькулятор нод;
+//   EcoRaidScreen    — эко-рейд: лучший инструмент (удары +
+//                      время), табы «Рекомендуется / Самый быстрый»;
+//   CustomRaidScreen — кастом: выбираешь боеприпас сверху,
+//                      «+ Добавить» бьёт по строению, полоска ХП.
+// Пикер строений общий: поиск + стена/фундамент/пол/крыша всех
+// тиров, двери, ящик, своё HP.
+// Все цифры ≈ ванильные (rusthelp/rustlabs-стиль), урон зависит
+// от материала и патчей — значения правятся в таблицах ниже.
 // ─────────────────────────────────────────────────────────
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 'react-native';
@@ -28,19 +31,41 @@ const AMMO = [
 
 const ammoById = (id) => AMMO.find((a) => a.id === id);
 
-// ── Постройки: HP и материал (жёсткая сторона, ≈ ваниль) ──
-const BUILDINGS = [
-  { id: 'woodDoor',    ic: '🚪', ru: 'Деревянная дверь',     en: 'Wooden Door',     hp: 200,  mat: 'wood' },
-  { id: 'sheetDoor',   ic: '🚪', ru: 'Дверь (лист. металл)', en: 'Sheet Metal Door', hp: 250,  mat: 'metal' },
-  { id: 'garage',      ic: '🚪', ru: 'Гаражная дверь',       en: 'Garage Door',     hp: 600,  mat: 'metal' },
-  { id: 'woodWall',    ic: '🪵', ru: 'Стена деревянная',     en: 'Wood Wall',       hp: 250,  mat: 'wood' },
-  { id: 'stoneWall',   ic: '🧱', ru: 'Стена каменная',       en: 'Stone Wall',      hp: 500,  mat: 'stone' },
-  { id: 'metalWall',   ic: '🧱', ru: 'Стена металлическая',  en: 'Metal Wall',      hp: 1000, mat: 'metal' },
-  { id: 'armoredWall', ic: '🧱', ru: 'Стена бронированная',  en: 'Armored Wall',    hp: 2000, mat: 'hqm' },
-  { id: 'custom',      ic: '📏', ru: 'Своё (ввести HP)',     en: 'Custom (enter HP)', hp: 500, mat: 'stone', custom: true },
+// ── Строения: тиры × части + двери/ящик/своё. HP тира одинаково
+//    для стены/фундамента/пола/крыши (≈ ваниль) ──
+const MATS = [
+  { id: 'wood',    ru: 'дерева',        en: 'Wood',     hp: 250 },
+  { id: 'stone',   ru: 'камня',         en: 'Stone',    hp: 500 },
+  { id: 'metal',   ru: 'металла',       en: 'Metal',    hp: 1000 },
+  { id: 'armored', ru: 'броне-металла', en: 'Armored',  hp: 2000 },
+];
+const PARTS = [
+  { id: 'wall',       ic: '🧱', ru: 'Стена',     en: 'Wall' },
+  { id: 'foundation', ic: '⬛', ru: 'Фундамент', en: 'Foundation' },
+  { id: 'floor',      ic: '▭',  ru: 'Пол',       en: 'Floor' },
+  { id: 'roof',       ic: '🏠', ru: 'Крыша',     en: 'Roof' },
 ];
 
-const bById = (id) => BUILDINGS.find((b) => b.id === id);
+const ALL_BUILDINGS = [];
+MATS.forEach((m) => PARTS.forEach((p) => {
+  ALL_BUILDINGS.push({
+    id: p.id + '_' + m.id,
+    ic: p.ic,
+    hp: m.hp,
+    mat: m.id === 'armored' ? 'hqm' : m.id,
+    name: { ru: p.ru + ' из ' + m.ru, en: m.en + ' ' + p.en },
+  });
+}));
+[
+  { id: 'woodDoor',    ic: '🚪', hp: 200, mat: 'wood',  name: { ru: 'Деревянная дверь',      en: 'Wooden Door' } },
+  { id: 'sheetDoor',   ic: '🚪', hp: 250, mat: 'metal', name: { ru: 'Дверь (лист. металл)',  en: 'Sheet Metal Door' } },
+  { id: 'garageDoor',  ic: '🚪', hp: 600, mat: 'metal', name: { ru: 'Гаражная дверь',        en: 'Garage Door' } },
+  { id: 'armoredDoor', ic: '🚪', hp: 800, mat: 'hqm',   name: { ru: 'Бронированная дверь',   en: 'Armored Door' } },
+  { id: 'box',         ic: '📦', hp: 100, mat: 'wood',  name: { ru: 'Деревянный ящик',       en: 'Wooden Box' } },
+  { id: 'custom',      ic: '📏', hp: 500, mat: 'stone', custom: true, name: { ru: 'Своё (ввести HP)', en: 'Custom (enter HP)' } },
+].forEach((b) => ALL_BUILDINGS.push(b));
+
+const bById = (id) => ALL_BUILDINGS.find((b) => b.id === id);
 
 // Лучший боеприпас для постройки: минимум серы, при равенстве — меньше штук
 function bestAmmo(b, hp, allowWb3) {
@@ -54,6 +79,50 @@ function bestAmmo(b, hp, allowWb3) {
     }
   });
   return best;
+}
+
+// ── Эко-рейд: инструменты (≈ урон за удар по материалу + мах/удар,
+//    жёсткая сторона). POWER — только во вкладке «Самый быстрый» ──
+const ECO_TOOLS = [
+  { id: 'rock',      ic: '🪨', ru: 'Камень',           en: 'Rock',              swing: 1.0, dmg: { wood: 4,  stone: 1,  metal: 1,  hqm: 1 } },
+  { id: 'sthatchet', ic: '🪓', ru: 'Каменный топор',   en: 'Stone Hatchet',     swing: 1.0, dmg: { wood: 10, stone: 3,  metal: 2,  hqm: 1 } },
+  { id: 'hatchet',   ic: '🪓', ru: 'Топор',            en: 'Hatchet',           swing: 1.0, dmg: { wood: 15, stone: 4,  metal: 3,  hqm: 2 } },
+  { id: 'stpick',    ic: '⛏️', ru: 'Каменная кирка',   en: 'Stone Pickaxe',     swing: 1.0, dmg: { wood: 6,  stone: 6,  metal: 3,  hqm: 2 } },
+  { id: 'pick',      ic: '⛏️', ru: 'Кирка',            en: 'Pickaxe',           swing: 1.0, dmg: { wood: 8,  stone: 12, metal: 5,  hqm: 3 } },
+  { id: 'sicepick',  ic: '⛏️', ru: 'Самод. ледоруб',   en: 'Salvaged Icepick',  swing: 0.9, dmg: { wood: 10, stone: 16, metal: 7,  hqm: 4 } },
+  { id: 'shammer',   ic: '🔨', ru: 'Самод. молот',     en: 'Salvaged Hammer',   swing: 1.0, dmg: { wood: 12, stone: 5,  metal: 6,  hqm: 3 } },
+  { id: 'ssword',    ic: '🗡️', ru: 'Самод. меч',       en: 'Salvaged Sword',    swing: 0.7, dmg: { wood: 18, stone: 4,  metal: 3,  hqm: 2 } },
+  { id: 'mace',      ic: '🏏', ru: 'Булава',           en: 'Mace',              swing: 1.1, dmg: { wood: 15, stone: 8,  metal: 5,  hqm: 3 } },
+  { id: 'knife',     ic: '🔪', ru: 'Костяной нож',     en: 'Bone Knife',        swing: 0.6, dmg: { wood: 8,  stone: 2,  metal: 2,  hqm: 1 } },
+];
+const ECO_POWER = [
+  { id: 'jackhammer', ic: '🔨', ru: 'Отбойный молоток', en: 'Jackhammer', swing: 0.35, dmg: { wood: 20, stone: 25, metal: 12, hqm: 8 } },
+];
+
+function bestEcoTool(b, hp, fast) {
+  let best = null;
+  ECO_TOOLS.concat(fast ? ECO_POWER : []).forEach((tool) => {
+    const hits = Math.ceil(hp / tool.dmg[b.mat]);
+    const time = hits * tool.swing;
+    if (!best || time < best.time || (time === best.time && hits < best.hits)) {
+      best = { tool, hits, time };
+    }
+  });
+  return best;
+}
+
+// 5438 → «1ч 30м 38с» / «1h 30m 38s»
+function fmtDurLong(sec, lang) {
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  const u = lang === 'ru' ? ['ч', 'м', 'с'] : ['h', 'm', 's'];
+  const parts = [];
+  if (h) parts.push(h + u[0]);
+  if (m) parts.push(m + u[1]);
+  if (s || !parts.length) parts.push(s + u[2]);
+  return parts.join(' ');
 }
 
 // ── Рецепты крафта (≈ ваниль, за 1 шт) для «сырых компонентов» ──
@@ -105,7 +174,41 @@ const TOOLS = [
   { ic: '🦴', ru: 'Костяная дубина',    en: 'Bone Club',        hits: 34 },
 ];
 
-/* ══════════════ Основной экран ══════════════ */
+/* ══════════════ Общий пикер строений (с поиском) ══════════════ */
+
+function BuildingPicker({ lang, onPick, hideCustom }) {
+  const [q, setQ] = useState('');
+  const list = ALL_BUILDINGS.filter((b) => {
+    if (hideCustom && b.custom) return false;
+    const needle = q.trim().toLowerCase();
+    if (!needle) return true;
+    return (lang === 'ru' ? b.name.ru : b.name.en).toLowerCase().includes(needle);
+  });
+  return (
+    <View style={st.palette}>
+      <TextInput
+        style={st.searchInput}
+        value={q}
+        onChangeText={setQ}
+        placeholder={lang === 'ru' ? 'Поиск строения…' : 'Search structures…'}
+        placeholderTextColor="rgba(255,255,255,0.35)"
+      />
+      <View style={st.palGrid}>
+        {list.map((b) => (
+          <TouchableOpacity key={b.id} style={st.palChip} onPress={() => onPick(b.id)}>
+            <Text style={{ fontSize: 13 }}>{b.ic}</Text>
+            <Text style={st.palTxt} numberOfLines={1}>{lang === 'ru' ? b.name.ru : b.name.en}</Text>
+          </TouchableOpacity>
+        ))}
+        {!list.length && (
+          <Text style={st.totalEmpty}>{lang === 'ru' ? 'ничего не нашлось' : 'nothing found'}</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+/* ══════════════ 1. План (основной экран) ══════════════ */
 
 export function RaidPlanScreen({ lang = 'ru' }) {
   const [view, setView] = useState('main'); // main | raw | nodes
@@ -200,7 +303,7 @@ export function RaidPlanScreen({ lang = 'ru' }) {
             <Text style={st.rowN}>{'×' + r.n}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={st.rowName} numberOfLines={1}>{t(r.b)}</Text>
+            <Text style={st.rowName} numberOfLines={1}>{t(r.b.name)}</Text>
             {r.b.custom && (
               <View style={st.hpRow}>
                 <Text style={st.hpLbl}>HP:</Text>
@@ -228,18 +331,6 @@ export function RaidPlanScreen({ lang = 'ru' }) {
         </View>
       ))}
 
-      {/* выбор постройки */}
-      {pickerOpen && (
-        <View style={st.palette}>
-          {BUILDINGS.map((b) => (
-            <TouchableOpacity key={b.id} style={st.palChip} onPress={() => addBuilding(b.id)}>
-              <Text style={{ fontSize: 13 }}>{b.ic}</Text>
-              <Text style={st.palTxt} numberOfLines={1}>{t(b)}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
       {/* переключение видов */}
       <View style={st.viewRow}>
         <TouchableOpacity style={st.viewBtn} onPress={() => setView('raw')}>
@@ -252,13 +343,22 @@ export function RaidPlanScreen({ lang = 'ru' }) {
 
       {/* добавить / сброс */}
       <View style={st.bottomRow}>
-        <TouchableOpacity style={st.addBigBtn} onPress={() => setPickerOpen(!pickerOpen)}>
-          <Text style={st.addBigTxt}>⊕ {lang === 'ru' ? 'ДОБАВИТЬ СТРОЕНИЯ' : 'ADD BUILDINGS'}</Text>
+        <TouchableOpacity style={[st.addBigBtn, pickerOpen && st.backListBtn]} onPress={() => setPickerOpen(!pickerOpen)}>
+          <Text style={[st.addBigTxt, pickerOpen && st.backListTxt]}>
+            {(pickerOpen ? '↓ ' : '⊕ ') + (pickerOpen
+              ? (lang === 'ru' ? 'НАЗАД К СПИСКУ' : 'BACK TO LIST')
+              : (lang === 'ru' ? 'ДОБАВИТЬ СТРОЕНИЯ' : 'ADD BUILDINGS'))}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={st.resetBigBtn} onPress={() => setRows([])}>
           <Text style={st.resetBigTxt}>🗑 {lang === 'ru' ? 'СБРОС' : 'RESET'}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* выбор постройки */}
+      {pickerOpen && (
+        <BuildingPicker lang={lang} onPick={addBuilding} />
+      )}
 
       <Text style={st.disclaimer}>
         {lang === 'ru'
@@ -409,6 +509,225 @@ function NodesView({ lang, back }) {
   );
 }
 
+/* ══════════════ 2. Эко-рейд ══════════════ */
+
+export function EcoRaidScreen({ lang = 'ru' }) {
+  const [tab, setTab] = useState('rec'); // rec | fast
+  const [rows, setRows] = useState([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const fast = tab === 'fast';
+  const calc = rows.map((r) => {
+    const b = bById(r.bid);
+    const hp = Math.max(1, Number(r.hp) || b.hp);
+    return { ...r, b, hp, best: bestEcoTool(b, hp, fast) };
+  });
+
+  const addBuilding = (bid) => {
+    const i = rows.findIndex((r) => r.bid === bid);
+    if (i >= 0) {
+      const next = [...rows];
+      next[i] = { ...next[i], n: next[i].n + 1 };
+      setRows(next);
+      return;
+    }
+    setRows([...rows, { bid, n: 1 }]);
+  };
+  const changeN = (idx, d) => {
+    const next = [...rows];
+    const n = next[idx].n + d;
+    if (n <= 0) next.splice(idx, 1); else next[idx] = { ...next[idx], n };
+    setRows(next);
+  };
+
+  return (
+    <GlassCard>
+      {/* табы */}
+      <View style={st.tabRow}>
+        {[['rec', lang === 'ru' ? 'Рекомендуется' : 'Recommended'], ['fast', lang === 'ru' ? 'Самый быстрый' : 'Fastest']].map(([id, label]) => (
+          <TouchableOpacity key={id} style={st.tabBtn} onPress={() => setTab(id)}>
+            <Text style={[st.tabTxt, tab === id && st.tabTxtActive]}>{label}</Text>
+            {tab === id && <View style={st.tabLine} />}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* строки построек */}
+      {calc.length === 0 && (
+        <Text style={st.totalEmpty}>{lang === 'ru' ? 'Добавь постройки — подберём инструмент 🔨' : 'Add buildings — we\'ll pick a tool 🔨'}</Text>
+      )}
+      {calc.map((r, idx) => (
+        <View key={r.bid + idx} style={st.row}>
+          <View style={st.rowLeft}>
+            <Text style={st.rowIc}>{r.b.ic}</Text>
+            <Text style={st.rowN}>{'×' + r.n}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={st.rowName} numberOfLines={1}>{lang === 'ru' ? r.b.name.ru : r.b.name.en}</Text>
+            {!!r.best && (
+              <Text style={st.rowBest}>
+                {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')
+                  + r.best.tool.ic + ' ×' + fmtTh(r.best.hits * r.n)
+                  + '  (' + fmtDurLong(r.best.time * r.n, lang) + ')'}
+              </Text>
+            )}
+          </View>
+          <View style={st.rowCtrl}>
+            <TouchableOpacity style={st.miniBtn} onPress={() => changeN(idx, 1)}><Text style={st.miniTxt}>＋</Text></TouchableOpacity>
+            <TouchableOpacity style={st.miniBtn} onPress={() => changeN(idx, -1)}><Text style={st.miniTxt}>－</Text></TouchableOpacity>
+            <TouchableOpacity style={st.delBtn} onPress={() => changeN(idx, -r.n)}><Text style={st.delTxt}>✕</Text></TouchableOpacity>
+          </View>
+        </View>
+      ))}
+
+      {/* добавить / сброс */}
+      <View style={st.bottomRow}>
+        <TouchableOpacity style={[st.addBigBtn, pickerOpen && st.backListBtn]} onPress={() => setPickerOpen(!pickerOpen)}>
+          <Text style={[st.addBigTxt, pickerOpen && st.backListTxt]}>
+            {(pickerOpen ? '↓ ' : '⊕ ') + (pickerOpen
+              ? (lang === 'ru' ? 'НАЗАД К СПИСКУ' : 'BACK TO LIST')
+              : (lang === 'ru' ? 'ДОБАВИТЬ СТРОЕНИЯ' : 'ADD BUILDINGS'))}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={st.resetBigBtn} onPress={() => setRows([])}>
+          <Text style={st.resetBigTxt}>🗑 {lang === 'ru' ? 'СБРОС' : 'RESET'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {pickerOpen && (
+        <BuildingPicker lang={lang} onPick={addBuilding} />
+      )}
+
+      <Text style={st.disclaimer}>
+        {lang === 'ru'
+          ? '≈ Жёсткая сторона, ваниль: удары = ХП ÷ урон инструмента, время = удары × размах. «Самый быстрый» добавляет отбойный молоток. Урон по мягкой стороне выше — числа ориентировочные, правятся в коде.'
+          : '≈ Hard side, vanilla: hits = HP ÷ tool damage, time = hits × swing. "Fastest" adds the jackhammer. Soft-side damage is higher — figures are rough and editable in code.'}
+      </Text>
+    </GlassCard>
+  );
+}
+
+/* ══════════════ 3. Кастом (боумы по строениям, живое ХП) ══════════════ */
+
+export function CustomRaidScreen({ lang = 'ru' }) {
+  const [ammoId, setAmmoId] = useState('c4');
+  const [rows, setRows] = useState([]); // [{bid, hpLeft, uses}]
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const ammo = ammoById(ammoId);
+
+  const addBuilding = (bid) => {
+    if (rows.some((r) => r.bid === bid)) return;
+    const b = bById(bid);
+    setRows([...rows, { bid, hpLeft: b.hp, uses: 0 }]);
+  };
+  const removeAt = (idx) => {
+    const next = [...rows];
+    next.splice(idx, 1);
+    setRows(next);
+  };
+  // один удар выбранным боеприпасом по строению
+  const applyHit = (idx) => {
+    const next = [...rows];
+    const r = next[idx];
+    const b = bById(r.bid);
+    const dmg = ammo.dmg[b.mat];
+    next[idx] = { ...r, hpLeft: Math.max(0, r.hpLeft - dmg), uses: r.uses + 1 };
+    setRows(next);
+  };
+  const resetHp = () => setRows(rows.map((r) => ({ ...r, hpLeft: bById(r.bid).hp, uses: 0 })));
+
+  return (
+    <GlassCard>
+      {/* выбор боеприпаса для всех строений */}
+      <View style={st.custHeadBar}>
+        <Text style={st.custHeadTxt}>
+          {lang === 'ru' ? 'Добавить бумы к каждому строению' : 'Apply explosives to every structure'}
+        </Text>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={st.ammoChipsRow}>
+        {AMMO.map((a) => (
+          <TouchableOpacity
+            key={a.id}
+            style={[st.ammoChip, ammoId === a.id && st.ammoChipActive]}
+            onPress={() => setAmmoId(a.id)}
+          >
+            <Text style={{ fontSize: 15 }}>{a.ic}</Text>
+            <Text style={[st.ammoChipTxt, ammoId === a.id && st.ammoChipTxtActive]}>
+              {lang === 'ru' ? a.ru : a.en}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* строки строений с живым ХП */}
+      {rows.length === 0 && (
+        <Text style={st.totalEmpty}>{lang === 'ru' ? 'Добавь строения ↓ и жми «+ Добавить» по каждому.' : 'Add structures ↓ and tap "+ Apply" on each.'}</Text>
+      )}
+      {rows.map((r, idx) => {
+        const b = bById(r.bid);
+        const dead = r.hpLeft <= 0;
+        const pct = Math.max(0, Math.round((r.hpLeft / b.hp) * 100));
+        const fillColor = dead ? 'rgba(255,255,255,0.14)' : pct > 50 ? '#66bb6a' : pct > 25 ? '#e0a800' : '#ef4444';
+        return (
+          <View key={r.bid} style={st.custRow}>
+            <View style={st.custTop}>
+              <View style={st.rowLeft}>
+                <Text style={st.rowIc}>{b.ic}</Text>
+                <Text style={st.rowN}>{'×' + r.uses}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={st.rowName} numberOfLines={1}>{lang === 'ru' ? b.name.ru : b.name.en}</Text>
+              </View>
+              {!dead ? (
+                <TouchableOpacity style={st.plusBtn} onPress={() => applyHit(idx)}>
+                  <Text style={st.plusIc}>＋</Text>
+                  <Text style={st.plusLbl}>{lang === 'ru' ? 'Добавить' : 'Apply'}</Text>
+                </TouchableOpacity>
+              ) : null}
+              <TouchableOpacity style={st.delBtn} onPress={() => removeAt(idx)}>
+                <Text style={st.delTxt}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={st.hpTrack}>
+              <View style={[st.hpFill, { width: pct + '%', backgroundColor: fillColor }]} />
+              <Text style={st.hpCenterTxt}>
+                {dead
+                  ? (lang === 'ru' ? '💥 Разрушено' : '💥 Destroyed')
+                  : (lang === 'ru' ? 'Осталось ХП: ' : 'HP left: ') + fmtTh(r.hpLeft) + ' (' + pct + '%)'}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+
+      {/* добавить / сброс */}
+      <View style={st.bottomRow}>
+        <TouchableOpacity style={[st.addBigBtn, pickerOpen && st.backListBtn]} onPress={() => setPickerOpen(!pickerOpen)}>
+          <Text style={[st.addBigTxt, pickerOpen && st.backListTxt]}>
+            {(pickerOpen ? '↓ ' : '⊕ ') + (pickerOpen
+              ? (lang === 'ru' ? 'НАЗАД К СПИСКУ' : 'BACK TO LIST')
+              : (lang === 'ru' ? 'ДОБАВИТЬ СТРОЕНИЯ' : 'ADD BUILDINGS'))}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={st.resetBigBtn} onPress={resetHp}>
+          <Text style={st.resetBigTxt}>🗑 {lang === 'ru' ? 'СБРОС' : 'RESET'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {pickerOpen && (
+        <BuildingPicker lang={lang} onPick={addBuilding} hideCustom />
+      )}
+
+      <Text style={st.disclaimer}>
+        {lang === 'ru'
+          ? '≈ Урон боеприпаса зависит от материала строения (жёсткая сторона, ваниль). «СБРОС» восстанавливает всем строкам полное ХП и счётчик, ✕ убирает строку. Тап «＋» — один боеприпас.'
+          : '≈ Ammo damage depends on structure material (hard side, vanilla). RESET restores full HP and counters for all rows, ✕ removes a row. Each "+" tap applies one explosive.'}
+      </Text>
+    </GlassCard>
+  );
+}
+
 const st = StyleSheet.create({
   // табы
   tabRow: { flexDirection: 'row', marginBottom: 10 },
@@ -485,11 +804,8 @@ const st = StyleSheet.create({
   },
   delTxt: { color: '#fff', fontSize: 12, fontWeight: '800' },
 
-  // палитра построек
+  // пикер строений
   palette: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
     backgroundColor: 'rgba(0,0,0,0.25)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -497,6 +813,18 @@ const st = StyleSheet.create({
     padding: 8,
     marginBottom: 10,
   },
+  searchInput: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.16)',
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+  },
+  palGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   palChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -522,7 +850,7 @@ const st = StyleSheet.create({
     paddingVertical: 10,
   },
   viewTxt: { color: colors.textPrimary, fontSize: 11.5, fontWeight: '700' },
-  bottomRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  bottomRow: { flexDirection: 'row', gap: 8, marginVertical: 8 },
   addBigBtn: {
     flex: 2,
     alignItems: 'center',
@@ -531,6 +859,8 @@ const st = StyleSheet.create({
     paddingVertical: 13,
   },
   addBigTxt: { color: '#3a2418', fontSize: 12.5, fontWeight: '900', letterSpacing: 0.3 },
+  backListBtn: { backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  backListTxt: { color: colors.textPrimary },
   resetBigBtn: {
     flex: 1,
     alignItems: 'center',
@@ -625,6 +955,79 @@ const st = StyleSheet.create({
     paddingHorizontal: 8,
   },
   toolChipTxt: { color: '#ffd54f', fontSize: 10.5, fontWeight: '700' },
+
+  // кастомный рейд
+  custHeadBar: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginBottom: 8,
+  },
+  custHeadTxt: { color: colors.textSecondary, fontSize: 12.5, fontWeight: '600' },
+  ammoChipsRow: { marginBottom: 10 },
+  ammoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginRight: 6,
+  },
+  ammoChipActive: { borderColor: eventPalette.orange, backgroundColor: 'rgba(251,146,60,0.16)' },
+  ammoChipTxt: { color: colors.textSecondary, fontSize: 11, fontWeight: '700' },
+  ammoChipTxtActive: { color: eventPalette.orange },
+  custRow: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    padding: 9,
+    marginBottom: 8,
+  },
+  custTop: { flexDirection: 'row', alignItems: 'center' },
+  plusBtn: { alignItems: 'center', marginRight: 8 },
+  plusIc: {
+    color: colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '700',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  plusLbl: { color: colors.textSecondary, fontSize: 9, marginTop: 2 },
+  hpTrack: {
+    marginTop: 8,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: 'rgba(102,187,106,0.18)',
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  hpFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 6,
+  },
+  hpCenterTxt: {
+    textAlign: 'center',
+    color: '#fff',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
 
   disclaimer: {
     color: colors.textMuted,

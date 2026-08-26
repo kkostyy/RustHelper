@@ -33,6 +33,7 @@ import {
 } from './ToolsScreen';
 import { RaidPlanScreen, EcoRaidScreen, CustomRaidScreen } from './RaidPlanScreen';
 import { AdminPanelScreen } from './AdminPanelScreen';
+import UsefulInfoScreen from './UsefulInfoScreen';
 import DecayCalcScreen from './DecayCalcScreen';
 import RecyclerMachineScreen from './RecyclerMachineScreen';
 import {
@@ -125,6 +126,7 @@ const INFO_TOPICS = [
   { id: 'crates', icon: '📦', color: eventPalette.yellow, title: { ru: 'Лут с ящиков', en: 'Crate Loot' }, desc: { ru: 'Тиры ящиков и наполнение', en: 'Crate tiers and contents' } },
   { id: 'npc', icon: '💀', color: eventPalette.purple, title: { ru: 'Лут с NPC', en: 'NPC Loot' }, desc: { ru: 'Что падает с ученых и бандитов', en: 'What scientists & bandits drop' } },
   { id: 'safezone', icon: '🏪', color: eventPalette.blue, title: { ru: 'Магазины мирных зон', en: 'Safe-zone Shops' }, desc: { ru: 'Бандитский и научный лагерь', en: 'Bandit and Outpost camps' } },
+  { id: 'useful', icon: '📘', color: '#8caacc', title: { ru: 'Полезная информация', en: 'Useful Info' }, desc: { ru: 'ID предметов, гниение, методики, ссылки', en: 'Item IDs, decay, methods, links' } },
   { id: 'workbench', icon: '🔧', color: eventPalette.green, title: { ru: 'Верстаки и чертежи', en: 'Workbenches' }, desc: { ru: 'Уровни верстаков и фрагменты', en: 'Workbench tiers and fragments' } },
 ];
 
@@ -578,6 +580,7 @@ const INFO_SCREENS = {
   crates: CratesInfo,
   npc: NpcInfo,
   safezone: SafezoneInfo,
+  useful: UsefulInfoScreen,
   workbench: WorkbenchInfo,
 };
 

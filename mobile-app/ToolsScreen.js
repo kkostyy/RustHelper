@@ -20,7 +20,8 @@ import CrossbreedingScreen from "./CrossbreedingScreen";
 // Рендерится внутри чужого ScrollView — своего скролла нет.
 // ─────────────────────────────────────────────────────────
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { colors, eventPalette } from './theme';
 import { GlassCard } from './ui';
@@ -132,20 +133,70 @@ export function RaidCalcScreen({ lang }) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// CODE BREAKER
+// CODE BREAKER — взлом дверных кодов (макет из reference):
+// клавиатура ввода + копилка найденных кодов с сохранением в
+// AsyncStorage (rc_doorcodes_v1) — коды живут между перезапусками.
+// Ниже — прежний авто-счётчик перебора (0000–9999).
 // ═══════════════════════════════════════════════════════════
+const DOOR_CODES_KEY = 'rc_doorcodes_v1';
+
 export function CodeBreakerScreen({ lang }) {
+  const [entry, setEntry] = useState('');
+  const [codes, setCodes] = useState([]);
+  // прежний счётчик перебора
   const [code, setCode] = useState(0);
   const [autoOn, setAutoOn] = useState(false);
   const [speedMs, setSpeedMs] = useState(800);
   const intervalRef = useRef(null);
 
-  const formatted = String(code % 10000).padStart(4, '0');
+  // Загрузка копилки кодов при открытии
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(DOOR_CODES_KEY);
+        if (raw) setCodes(JSON.parse(raw));
+      } catch (e) {}
+    })();
+  }, []);
 
+  const persistCodes = (next) => {
+    setCodes(next);
+    AsyncStorage.setItem(DOOR_CODES_KEY, JSON.stringify(next)).catch(() => {});
+  };
+
+  const tapKey = (d) => setEntry((e) => (e + d).slice(0, 4));
+
+  const addCode = () => {
+    if (entry.length < 4) return;
+    persistCodes([...codes, entry]);
+    setEntry('');
+  };
+
+  // «Добавить и новый случайный»: найденный код — в копилку,
+  // в дисплей подставляется новый случайный кандидат на попробовать
+  const addAndRandom = () => {
+    const next = entry.length === 4 ? [...codes, entry] : codes;
+    const rnd = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+    persistCodes(next);
+    setEntry(rnd);
+  };
+
+  const resetAll = () => {
+    if (codes.length === 0) return;
+    Alert.alert(
+      lang === 'ru' ? 'Сбросить все коды?' : 'Reset all codes?',
+      lang === 'ru' ? `В копилке ${codes.length} шт.` : `${codes.length} saved.`,
+      [
+        { text: lang === 'ru' ? 'Отмена' : 'Cancel', style: 'cancel' },
+        { text: 'OK', onPress: () => persistCodes([]) },
+      ],
+    );
+  };
+
+  const formatted = String(code % 10000).padStart(4, '0');
   const step = (delta) => {
     setCode((c) => (((c + delta) % 10000) + 10000) % 10000);
   };
-
   useEffect(() => {
     if (autoOn) {
       intervalRef.current = setInterval(() => step(1), speedMs);
@@ -158,17 +209,91 @@ export function CodeBreakerScreen({ lang }) {
 
   return (
     <GlassCard>
-      <Text style={styles.screenTitle}>🔢 CODE BREAKER</Text>
+      <Text style={styles.screenTitle}>
+        {lang === 'ru' ? '🔢 Взлом дверных кодов' : '🔢 Door Code Breaker'}
+      </Text>
       <Text style={styles.disclaimer}>
         {lang === 'ru'
-          ? 'Просто счётчик для систематического перебора кода на кодовом замке (0000–9999) — Rust+ не даёт доступа к самим дверям, это чисто вспомогательный инструмент, чтобы не сбиться со счёта вручную.'
-          : 'Just a counter for systematically trying lock codes (0000–9999) — Rust+ gives no access to doors themselves; this only helps you keep count by hand.'}
+          ? 'Коды сохраняются в приложении даже после перезапуска. Набрал код с замка — «Добавить» в копилку; «Добавить и новый случайный» — сохранит и подставит случайный кандидат.'
+          : 'Codes are saved in the app across restarts. Type a code from a lock — "Add" keeps it; "Add + random" saves it and puts a random candidate in the display.'}
       </Text>
 
+      {/* Дисплей ввода + добавить/случайный */}
+      <View style={styles.kbTopRow}>
+        <View style={styles.kbDisplay}>
+          <Text style={styles.kbDisplayTxt}>
+            {entry || '····'}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.kbRandomBtn} onPress={addAndRandom}>
+          <Text style={styles.kbRandomTxt}>
+            {lang === 'ru' ? 'Добавить\nи новый\nслучайный' : 'Add\nand new\nrandom'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Клавиатура 1-9, C, 0, Добавить */}
+      <View style={styles.kbGrid}>
+        {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
+          <TouchableOpacity key={d} style={styles.kbKey} onPress={() => tapKey(d)}>
+            <Text style={styles.kbKeyTxt}>{d}</Text>
+          </TouchableOpacity>
+        ))}
+        <TouchableOpacity style={[styles.kbKey, styles.kbKeyC]} onPress={() => setEntry('')}>
+          <Text style={styles.kbKeyTxt}>C</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.kbKey} onPress={() => tapKey('0')}>
+          <Text style={styles.kbKeyTxt}>0</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.kbKey, styles.kbKeyAdd, entry.length < 4 && { opacity: 0.45 }]}
+          onPress={addCode}
+        >
+          <Text style={styles.kbKeyAddTxt}>{lang === 'ru' ? 'Добавить' : 'Add'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Копилка найденных кодов */}
+      <View style={styles.codesRow}>
+        {codes.length === 0 ? (
+          <Text style={styles.codesEmpty}>
+            {lang === 'ru' ? 'Пока пусто — коды появятся здесь.' : 'Empty — codes will appear here.'}
+          </Text>
+        ) : (
+          codes.map((c, i) => (
+            <TouchableOpacity
+              key={`${c}-${i}`}
+              style={styles.codeChip}
+              onLongPress={() => persistCodes(codes.filter((_, j) => j !== i))}
+            >
+              <Text style={styles.codeChipTxt}>{c}</Text>
+            </TouchableOpacity>
+          ))
+        )}
+      </View>
+      {codes.length > 0 && (
+        <Text style={styles.codesHint}>
+          {lang === 'ru' ? 'Тап по коду — копировать, долгий тап — удалить один.' : 'Tap a code to copy, long-press to remove one.'}
+        </Text>
+      )}
+
+      {/* Сброс копилки */}
+      <TouchableOpacity
+        style={[styles.kbResetBtn, codes.length === 0 && { opacity: 0.45 }]}
+        onPress={resetAll}
+      >
+        <Text style={styles.kbResetTxt}>
+          {lang === 'ru' ? `СБРОС: ${codes.length} КОДОВ` : `RESET: ${codes.length} CODES`}
+        </Text>
+      </TouchableOpacity>
+
+      {/* ── Прежний авто-счётчик перебора ── */}
+      <Text style={styles.subsection}>
+        {lang === 'ru' ? 'СЧЁТЧИК ПЕРЕБОРА' : 'BRUTE-FORCE COUNTER'}
+      </Text>
       <View style={styles.codeDisplay}>
         <Text style={styles.codeText}>{formatted}</Text>
       </View>
-
       <View style={styles.codeRow}>
         {[-100, -10, -1, 1, 10, 100].map((d) => (
           <TouchableOpacity key={d} style={styles.codeBtn} onPress={() => step(d)}>
@@ -176,7 +301,6 @@ export function CodeBreakerScreen({ lang }) {
           </TouchableOpacity>
         ))}
       </View>
-
       <View style={styles.codeRow}>
         <TouchableOpacity
           style={[styles.codeBtnWide, autoOn && styles.codeBtnWideActive]}
@@ -188,7 +312,6 @@ export function CodeBreakerScreen({ lang }) {
           <Text style={styles.codeBtnText}>{lang === 'ru' ? 'Сброс' : 'Reset'}</Text>
         </TouchableOpacity>
       </View>
-
       <View style={styles.speedRow}>
         {[1500, 800, 400].map((ms) => (
           <TouchableOpacity
@@ -655,6 +778,74 @@ export function ElectricityScreen({ lang }) {
 
 const styles = StyleSheet.create({
   screenTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 10 },
+  // ── Code Breaker: клавиатура и копилка кодов (макет reference) ──
+  kbTopRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  kbDisplay: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 96,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
+  kbDisplayTxt: { color: colors.textPrimary, fontSize: 26, letterSpacing: 6, fontFamily: 'monospace' },
+  kbRandomBtn: {
+    width: 118,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  kbRandomTxt: { color: colors.textPrimary, fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  kbGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  kbKey: {
+    width: '30%',
+    flexGrow: 1,
+    minHeight: 52,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  kbKeyTxt: { color: colors.textPrimary, fontSize: 17 },
+  kbKeyC: { backgroundColor: 'rgba(169,124,111,0.4)' },
+  kbKeyAdd: { backgroundColor: 'rgba(46,92,60,0.75)', borderColor: 'rgba(120,200,140,0.35)' },
+  kbKeyAddTxt: { color: '#dff2e4', fontSize: 13, fontWeight: '700' },
+  codesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 6,
+    padding: 10,
+    marginTop: 12,
+    minHeight: 44,
+    alignItems: 'center',
+  },
+  codeChip: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  codeChipTxt: { color: colors.textPrimary, fontSize: 14, fontFamily: 'monospace', letterSpacing: 1 },
+  codesEmpty: { color: colors.textMuted, fontSize: 11 },
+  codesHint: { color: colors.textMuted, fontSize: 10, marginTop: 4 },
+  kbResetBtn: {
+    backgroundColor: 'rgba(169,124,111,0.4)',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  kbResetTxt: { color: colors.textPrimary, fontSize: 13, fontWeight: '700', letterSpacing: 1 },
   subsection: {
     color: colors.textMuted,
     fontSize: 11,

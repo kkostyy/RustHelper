@@ -128,7 +128,7 @@ const TOOL_TOPICS = [
   { id: 'raid', icon: '💣', color: eventPalette.red, title: { ru: 'Рейд-калькулятор', en: 'Raid Calculator' }, desc: { ru: 'Цели + расчёт своей стены по HP', en: 'Targets + custom wall by HP' } },
   { id: 'sulfur', icon: '🟡', color: '#e0a800', title: { ru: 'Конвертер серы', en: 'Sulfur Converter' }, desc: { ru: 'Запас серы → ракеты, C4, патроны', en: 'Sulfur stock → rockets, C4, ammo' } },
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Копилка дверных кодов + счётчик перебора', en: 'Door-code vault + brute-force counter' } },
-  { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Кросбридинг генов', en: 'Gene Crossbreeding' }, desc: { ru: 'Идеальный потомок двух растений', en: 'Best offspring of two plants' } },
+  { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Скрещивание (ферма)', en: 'Crossbreeding (Farm)' }, desc: { ru: 'Клоны, цель и рекомендованные планы', en: 'Clones, target & recommended plans' } },
   { id: 'extractors', icon: '⛏️', color: eventPalette.purple, title: { ru: 'Экстракторы', en: 'Extractors' }, desc: { ru: 'Карьеры, вышка, водяной насос', en: 'Quarries, pump jack, water pump' } },
   { id: 'recycler', icon: '♻️', color: eventPalette.teal, title: { ru: 'Переработка', en: 'Recycler Calculator' }, desc: { ru: 'Компоненты → металл, ВКМ и скрап', en: 'Components → metal, HQM & scrap' } },
   { id: 'electricity', icon: '⚡', color: eventPalette.orange, title: { ru: 'Электрика базы', en: 'Electricity Planner' }, desc: { ru: 'Источники против нагрузки (rWm)', en: 'Sources vs base load (rWm)' } },

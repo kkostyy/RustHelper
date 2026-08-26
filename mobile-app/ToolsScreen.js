@@ -339,7 +339,345 @@ function sanitizeGenes(v) {
   return v.toUpperCase().replace(/[^GYHWX]/g, '').slice(0, 6);
 }
 
+// ═══════════════════════════════════════════════════════════
+// ФЕРМА / СКРЕЩИВАНИЕ (макет из reference): список клонов
+// (6 генов + количество физических копий в грядке), целевая
+// цепочка и рекомендованные пары для скрещивания, отсортированные
+// по совпадению с целью. Список и цель сохраняются в AsyncStorage
+// (rc_farm_v1: СОХРАНИТЬ/ЗАГРУЗИТЬ). Ниже — прежний калькулятор
+// пары родителей.
+// ═══════════════════════════════════════════════════════════
+const FARM_KEY = 'rc_farm_v1';
+const GENE_GOOD = ['G', 'Y', 'H']; // «хорошие» гены — зелёные чипы
+const GENE_BAD = ['W', 'X']; // «плохие» — красные чипы
+
+// Лучший потомок пары: в каждом слоте сильнейший ген (G>Y>H>W>X)
+function bestChild(a, b) {
+  return a
+    .split('')
+    .map((g, i) => (GENE_RANK[g] >= GENE_RANK[b[i]] ? g : b[i]))
+    .join('');
+}
+
+// Насколько пара подходит под цель: совпадений слотов + резерв
+// (слоты, где ОБА родителя дали целевой ген — запас прочности)
+function planScore(a, b, target) {
+  const child = bestChild(a, b);
+  let match = 0;
+  let redundancy = 0;
+  for (let i = 0; i < 6; i++) {
+    if (child[i] === target[i]) {
+      match++;
+      if (a[i] === target[i] && b[i] === target[i]) redundancy++;
+    }
+  }
+  return { child, match, redundancy };
+}
+
+function GeneChip({ g, small }) {
+  const good = GENE_GOOD.indexOf(g) >= 0;
+  return (
+    <View
+      style={[
+        styles.gChip,
+        small && styles.gChipSmall,
+        good ? styles.gChipGood : styles.gChipBad,
+      ]}
+    >
+      <Text style={[styles.gChipTxt, small && { fontSize: 11 }]}>{g}</Text>
+    </View>
+  );
+}
+
+function GeneChipsRow({ genes, small }) {
+  return (
+    <View style={styles.gChipRow}>
+      {genes.split('').map((g, i) => (
+        <GeneChip key={`${g}-${i}`} g={g} small={small} />
+      ))}
+    </View>
+  );
+}
+
 export function GenesScreen({ lang }) {
+  const [clones, setClones] = useState([]); // [{id, genes, count}]
+  const [geneIn, setGeneIn] = useState('');
+  const [cntIn, setCntIn] = useState('1');
+  const [target, setTarget] = useState('');
+  const [editTarget, setEditTarget] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
+
+  // Загрузка последнего сохранения фермы
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(FARM_KEY);
+        if (raw) {
+          const st = JSON.parse(raw);
+          if (Array.isArray(st.clones)) setClones(st.clones);
+          if (typeof st.target === 'string') setTarget(st.target);
+        }
+      } catch (e) {}
+    })();
+  }, []);
+
+  const saveFarm = () => {
+    AsyncStorage.setItem(FARM_KEY, JSON.stringify({ clones, target })).catch(() => {});
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1200);
+  };
+  const loadFarm = async () => {
+    try {
+      const raw = await AsyncStorage.getItem(FARM_KEY);
+      if (!raw) return;
+      const st = JSON.parse(raw);
+      if (Array.isArray(st.clones)) setClones(st.clones);
+      if (typeof st.target === 'string') setTarget(st.target);
+    } catch (e) {}
+  };
+
+  const addClone = () => {
+    if (geneIn.length !== 6) return;
+    setClones((c) => [
+      ...c,
+      { id: String(Date.now()), genes: geneIn, count: Math.max(1, parseNum(cntIn, 1)) },
+    ]);
+    setGeneIn('');
+    setCntIn('1');
+  };
+
+  const tapGene = (g) => setGeneIn((v) => sanitizeGenes(v + g));
+  const tapTargetGene = (g) => setTarget((v) => sanitizeGenes(v + g).slice(0, 6));
+
+  // Рекомендованные пары: все сочетания клонов, сортировка по
+  // совпадению с целью → резерву → суммарному количеству копий
+  const plans = [];
+  if (target.length === 6) {
+    for (let i = 0; i < clones.length; i++) {
+      for (let j = i + 1; j < clones.length; j++) {
+        const a = clones[i];
+        const b = clones[j];
+        const s = planScore(a.genes, b.genes, target);
+        plans.push({ a, b, ...s, copies: a.count + b.count });
+      }
+    }
+    plans.sort(
+      (x, y) =>
+        y.match - x.match ||
+        y.redundancy - x.redundancy ||
+        y.copies - x.copies,
+    );
+  }
+  const topPlans = plans.slice(0, 8);
+  const perfect = plans.filter((p) => p.match === 6).length;
+
+  return (
+    <GlassCard>
+      <Text style={styles.screenTitle}>
+        {lang === 'ru' ? '🌱 Скрещивание (ферма)' : '🌱 Crossbreeding (Farm)'}
+      </Text>
+
+      {/* Шапка: список клонов + сохранить/загрузить */}
+      <View style={styles.farmHeader}>
+        <Text style={styles.farmHeaderLbl}>
+          {lang === 'ru' ? 'Список клонов' : 'Clone list'}
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity style={styles.farmIoBtn} onPress={saveFarm}>
+            <Text style={styles.farmIoTxt}>
+              {savedFlash ? '✓' : lang === 'ru' ? 'Сохранить' : 'Save'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.farmIoBtn} onPress={loadFarm}>
+            <Text style={styles.farmIoTxt}>{lang === 'ru' ? 'Загрузить' : 'Load'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Text style={styles.disclaimer}>
+        {lang === 'ru'
+          ? 'Добавьте шесть генов каждого клона и количество копий. Каждое количество считается отдельными физическими клонами в грядке.'
+          : 'Enter six genes per clone and the number of copies. Each copy counts as a separate physical clone in the plot.'}
+      </Text>
+      <Text style={styles.geneLegend}>
+        {lang === 'ru'
+          ? 'G — урожайность · H — выносливость · Y — скорость роста · W — экономия воды · X — пустой'
+          : 'G — yield · H — hardiness · Y — growth speed · W — less water · X — empty'}
+      </Text>
+
+      {/* Чипы генов: тап добавляет букву в поле */}
+      <View style={styles.gChipRow}>
+        {['G', 'Y', 'H', 'W', 'X'].map((g) => (
+          <TouchableOpacity
+            key={g}
+            style={[styles.gChip, GENE_GOOD.indexOf(g) >= 0 ? styles.gChipGood : styles.gChipBad]}
+            onPress={() => tapGene(g)}
+          >
+            <Text style={styles.gChipTxt}>{g}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Ввод: гены + количество */}
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+        <TextInput
+          style={[styles.inputMono, { flex: 1 }]}
+          value={geneIn}
+          onChangeText={(v) => setGeneIn(sanitizeGenes(v))}
+          placeholder="GGYYYY"
+          placeholderTextColor="rgba(255,255,255,0.3)"
+          autoCapitalize="characters"
+        />
+        <TextInput
+          style={[styles.inputMono, { width: 64, textAlign: 'center' }]}
+          value={cntIn}
+          onChangeText={(v) => setCntIn(v.replace(/[^0-9]/g, ''))}
+          keyboardType="number-pad"
+          placeholder="1"
+          placeholderTextColor="rgba(255,255,255,0.3)"
+        />
+      </View>
+
+      {/* Добавить клон (оранжевая, как в макете) */}
+      <TouchableOpacity
+        style={[styles.addCloneBtn, geneIn.length !== 6 && { opacity: 0.5 }]}
+        onPress={addClone}
+      >
+        <Text style={styles.addCloneTxt}>
+          ＋ {lang === 'ru' ? 'Добавить клон' : 'Add clone'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Список клонов / пустое состояние */}
+      {clones.length === 0 ? (
+        <View style={styles.emptyDashed}>
+          <Text style={styles.emptyTitle}>
+            {lang === 'ru' ? 'Клоны еще не добавлены.' : 'No clones yet.'}
+          </Text>
+          <Text style={styles.emptyHint}>
+            {lang === 'ru'
+              ? 'Попробуйте добавить что-то вроде GGYWYX или YGYGYH.'
+              : 'Try adding something like GGYWYX or YGYGYH.'}
+          </Text>
+        </View>
+      ) : (
+        clones.map((c) => (
+          <View key={c.id} style={styles.cloneRow}>
+            <GeneChipsRow genes={c.genes} small />
+            <Text style={styles.cloneCnt}>×{c.count}</Text>
+            <TouchableOpacity
+              style={styles.cloneDel}
+              onPress={() => setClones((cs) => cs.filter((x) => x.id !== c.id))}
+            >
+              <Text style={{ fontSize: 12 }}>🗑️</Text>
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+
+      {/* Цель */}
+      <View style={styles.targetCard}>
+        <View style={styles.targetHead}>
+          <Text style={styles.targetLbl}>
+            {lang === 'ru' ? 'Ваша цель' : 'Your target'}
+          </Text>
+          <TouchableOpacity onPress={() => setEditTarget((v) => !v)}>
+            <Text style={styles.targetEdit}>
+              {editTarget
+                ? lang === 'ru' ? 'готово' : 'done'
+                : lang === 'ru' ? 'Изменить' : 'Edit'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {editTarget ? (
+          <View>
+            <View style={styles.gChipRow}>
+              {['G', 'Y', 'H', 'W', 'X'].map((g) => (
+                <TouchableOpacity
+                  key={g}
+                  style={[styles.gChip, GENE_GOOD.indexOf(g) >= 0 ? styles.gChipGood : styles.gChipBad]}
+                  onPress={() => tapTargetGene(g)}
+                >
+                  <Text style={styles.gChipTxt}>{g}</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={[styles.gChip, styles.gChipBad]}
+                onPress={() => setTarget((v) => v.slice(0, -1))}
+              >
+                <Text style={styles.gChipTxt}>⌫</Text>
+              </TouchableOpacity>
+            </View>
+            <GeneChipsRow genes={target || '······'} small />
+          </View>
+        ) : (
+          <GeneChipsRow genes={target || '······'} small />
+        )}
+        <Text style={styles.targetNote}>
+          {lang === 'ru'
+            ? 'Рекомендованные планы отсортированы по оценочному совпадению с этими шестью генами.'
+            : 'Recommended plans are sorted by estimated match with these six genes.'}
+        </Text>
+      </View>
+
+      {/* Рекомендованные планы */}
+      <View style={styles.farmHeader}>
+        <Text style={styles.farmHeaderLbl}>
+          {lang === 'ru' ? 'Рекомендованные планы' : 'Recommended plans'}
+        </Text>
+        <View style={styles.variantChip}>
+          <Text style={styles.variantTxt}>
+            {target.length === 6
+              ? `${perfect} ${lang === 'ru' ? (perfect === 1 ? 'вариант 6/6' : 'вариантов 6/6') : perfect === 1 ? 'variant 6/6' : 'variants 6/6'}`
+              : lang === 'ru' ? '0 — задай цель' : '0 — set a target'}
+          </Text>
+        </View>
+      </View>
+
+      {target.length === 6 && clones.length >= 2 ? (
+        topPlans.map((p, idx) => (
+          <View key={`plan-${idx}`} style={styles.planCard}>
+            <View style={styles.planPairCol}>
+              <View style={styles.planRow}>
+                <GeneChipsRow genes={p.a.genes} small />
+                <Text style={styles.cloneCnt}>×{p.a.count}</Text>
+              </View>
+              <View style={styles.planRow}>
+                <GeneChipsRow genes={p.b.genes} small />
+                <Text style={styles.cloneCnt}>×{p.b.count}</Text>
+              </View>
+            </View>
+            <View style={styles.planResultCol}>
+              <Text style={styles.planArrow}>→</Text>
+              <GeneChipsRow genes={p.child} small />
+              <Text
+                style={[
+                  styles.planMatch,
+                  p.match === 6 ? { color: eventPalette.green } : { color: eventPalette.orange },
+                ]}
+              >
+                {p.match}/6{p.redundancy > 0 ? ` · +${p.redundancy}` : ''}
+              </Text>
+            </View>
+          </View>
+        ))
+      ) : (
+        <View style={styles.emptyDashed}>
+          <Text style={{ fontSize: 26, textAlign: 'center' }}>🌰</Text>
+        </View>
+      )}
+
+      {/* ── Прежний калькулятор пары ── */}
+      <Text style={styles.subsection}>
+        {lang === 'ru' ? 'КАЛЬКУЛЯТОР ПАРЫ' : 'PAIR CALCULATOR'}
+      </Text>
+      <PairCalc lang={lang} />
+    </GlassCard>
+  );
+}
+
+// Прежний расчёт «родитель A + родитель B → лучший потомок»
+function PairCalc({ lang }) {
   const [parentA, setParentA] = useState('GGHYYX');
   const [parentB, setParentB] = useState('YYHHXX');
   const ok = parentA.length === 6 && parentB.length === 6;
@@ -351,20 +689,7 @@ export function GenesScreen({ lang }) {
     : null;
 
   return (
-    <GlassCard>
-      <Text style={styles.screenTitle}>{lang === 'ru' ? '🌱 Кросбридинг генов' : '🌱 Gene Crossbreeding'}</Text>
-      <Text style={styles.disclaimer}>
-        {lang === 'ru'
-          ? 'Механика скрещивания: в каждом из 6 слотов потомок получает сильнейший ген из двух родителей (G > Y > H > W > X). Введи генные цепочки родителей — получишь идеального потомка от этой пары.'
-          : 'Breeding mechanic: for each of the 6 slots the child takes the strongest gene from either parent (G > Y > H > W > X). Enter both parent gene strings to get their best possible offspring.'}
-      </Text>
-
-      <Text style={styles.geneLegend}>
-        {lang === 'ru'
-          ? 'G — урожайность · H — выносливость (холод) · Y — скорость роста · W — экономия воды · X — пустой'
-          : 'G — yield · H — hardiness (cold) · Y — growth speed · W — less water · X — empty'}
-      </Text>
-
+    <View>
       <Text style={styles.label}>{lang === 'ru' ? 'Родитель A' : 'Parent A'}</Text>
       <TextInput
         style={[styles.inputMono, { color: eventPalette.blue }]}
@@ -398,7 +723,7 @@ export function GenesScreen({ lang }) {
           </TouchableOpacity>
         )}
       </View>
-    </GlassCard>
+    </View>
   );
 }
 
@@ -846,6 +1171,117 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   kbResetTxt: { color: colors.textPrimary, fontSize: 13, fontWeight: '700', letterSpacing: 1 },
+  // ── Ферма / скрещивание (макет reference) ──
+  farmHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  farmHeaderLbl: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    flex: 1,
+  },
+  farmIoBtn: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  farmIoTxt: { color: colors.textSecondary, fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
+  gChipRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginVertical: 6 },
+  gChip: {
+    width: 52,
+    height: 44,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  gChipSmall: { width: 34, height: 32, borderRadius: 8 },
+  gChipGood: { backgroundColor: 'rgba(74,140,90,0.35)', borderColor: 'rgba(120,200,140,0.5)' },
+  gChipBad: { backgroundColor: 'rgba(140,60,60,0.3)', borderColor: 'rgba(200,120,120,0.4)' },
+  gChipTxt: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  addCloneBtn: {
+    backgroundColor: '#e8703a',
+    borderRadius: 999,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  addCloneTxt: { color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 1 },
+  emptyDashed: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    padding: 22,
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  emptyTitle: { color: colors.textPrimary, fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  emptyHint: { color: colors.textMuted, fontSize: 12, marginTop: 6, textAlign: 'center', lineHeight: 17 },
+  cloneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 6,
+  },
+  cloneCnt: { color: colors.textPrimary, fontSize: 13, fontWeight: '700', marginHorizontal: 8 },
+  cloneDel: { paddingHorizontal: 6, paddingVertical: 4 },
+  targetCard: {
+    borderWidth: 1,
+    borderColor: 'rgba(232,150,130,0.45)',
+    borderRadius: 14,
+    padding: 14,
+    marginVertical: 12,
+    backgroundColor: 'rgba(232,150,130,0.05)',
+  },
+  targetHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  targetLbl: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  targetEdit: { color: '#e8968a', fontSize: 13, fontWeight: '700', textTransform: 'uppercase' },
+  targetNote: { color: colors.textMuted, fontSize: 11.5, lineHeight: 16, marginTop: 8 },
+  variantChip: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  variantTxt: { color: colors.textPrimary, fontSize: 11.5, fontWeight: '600' },
+  planCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  planPairCol: { flex: 1 },
+  planRow: { flexDirection: 'row', alignItems: 'center' },
+  planResultCol: { alignItems: 'center', marginLeft: 10 },
+  planArrow: { color: colors.textMuted, fontSize: 14, marginBottom: 2 },
+  planMatch: { fontSize: 12, fontWeight: '800', marginTop: 4 },
   subsection: {
     color: colors.textMuted,
     fontSize: 11,

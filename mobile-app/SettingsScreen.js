@@ -18,6 +18,7 @@ import { GlassCard, SectionHeader } from './ui';
 import { getTimeFmt, storeTimeFmt } from './live';
 import { useNotifs, setDnd, setKindEnabled } from './notifStore';
 import { fetchSteamProfile, loadBmKey, storeBmKey } from './lookup';
+import { AdminPanelScreen } from './AdminPanelScreen';
 
 const SOUND_KEY = 'rc_sound_v1';
 const NATIVE_NOTIF_KEY = 'rc_native_v1';
@@ -420,6 +421,26 @@ function CloudBackupSection({ lang, source, onChangeDash, setLang }) {
           </Text>
         </View>
       )}
+    </GlassCard>
+
+    {/* Подраздел: Аккаунты */}
+    <GlassCard>
+      <Text style={styles.screenTitle}>{lang === 'ru' ? '👤 Аккаунт' : '👤 Account'}</Text>
+      <Text style={styles.subsection}>{lang === 'ru' ? 'Создание / вход — локально (AsyncStorage)' : 'Create / sign in — local (AsyncStorage)'}</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 11 }}>
+        {lang === 'ru' ? 'Имя / SteamID / пароль не хранятся на сервере — только в устройстве. Для реальной авторизации подключи Firebase Auth или Steam OAuth.'
+         : 'Name / SteamID / password stay on device only. For real auth, connect Firebase Auth or Steam OAuth later.'}
+      </Text>
+      <Text style={{ color: eventPalette.blue, fontSize: 12, fontWeight: '700', marginTop: 4 }}>{lang === 'ru' ? '→ Регистрация / вход пока заглушка; реальные аккаунты — в следующем обновлении.' : '→ Registration / login stub only; real accounts in next update.'}</Text>
+    </GlassCard>
+
+    {/* Подраздел: Админ-панель */}
+    <GlassCard>
+      <Text style={styles.screenTitle}>{lang === 'ru' ? '🔐 Админ-панель' : '🔐 Admin Panel'}</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 11, marginBottom: 6 }}>
+        {lang === 'ru' ? 'Локальные права. Пока нет системы аккаунтов — флаг в Настройках (rc_admin_v1).' : 'Local rights. No accounts system yet — flag in Settings (rc_admin_v1).'}
+      </Text>
+      <AdminPanelScreen lang={lang} />
     </GlassCard>
   );
 }

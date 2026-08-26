@@ -310,7 +310,7 @@ export function RaidPlanScreen({ lang = 'ru' }) {
         <View key={r.bid + idx} style={st.row}>
           <View style={st.rowLeft}>
             {r.b.wallIcon ? (
-              <Image source={require(r.b.wallIcon)} style={{ width: 26, height: 26, borderRadius: 6, resizeMode: 'contain' }} />
+              <Text style={st.rowIc}>{r.b.ic}</Text>
             ) : (
               <Text style={st.rowIc}>{r.b.ic}</Text>
             )}
@@ -585,7 +585,7 @@ export function EcoRaidScreen({ lang = 'ru' }) {
         <View key={r.bid + idx} style={st.row}>
           <View style={st.rowLeft}>
             {r.b.wallIcon ? (
-              <Image source={require(r.b.wallIcon)} style={{ width: 26, height: 26, borderRadius: 6, resizeMode: 'contain' }} />
+              <Text style={st.rowIc}>{r.b.ic}</Text>
             ) : (
               <Text style={st.rowIc}>{r.b.ic}</Text>
             )}

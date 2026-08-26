@@ -4,4 +4,3 @@ export function calcPower(generators, batteries, splitters, turrets) {
 }
 // Углубление медленное: базовые значения генераторов / батарей (Rust баланс)
 export const POWER_RULES = { generator: 500, battery: 1000, splitter_loss: 0.05 };
-import { gradientColors, glassCard } from '../theme';

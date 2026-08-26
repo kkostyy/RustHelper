@@ -290,9 +290,15 @@ export function RaidPlanScreen({ lang = 'ru' }) {
           {Object.keys(totals).length === 0 && (
             <Text style={st.totalEmpty}>{lang === 'ru' ? 'добавь постройки ↓' : 'add buildings ↓'}</Text>
           )}
-          {Object.entries(totals).map(([id, n]) => (
-            <Text key={id} style={st.totalItem}>{ammoById(id).ic + ' ×' + fmtTh(n)}</Text>
-          ))}
+          {Object.entries(totals).map(([id, n]) => {
+            const a = ammoById(id);
+            return (
+              <Text key={id} style={st.totalItem}>
+                {a.icon ? <Image source={require(a.icon)} style={{ width: 16, height: 16, borderRadius: 4, resizeMode: 'contain', marginRight: 2 }} /> : a.ic}
+                {' ×' + fmtTh(n)}
+              </Text>
+            );
+          })}
         </ScrollView>
         {!!sulfurTotal && (
           <Text style={st.sulfurLine}>≈ {fmtTh(sulfurTotal)} {lang === 'ru' ? 'серы' : 'sulfur'}</Text>
@@ -325,9 +331,9 @@ export function RaidPlanScreen({ lang = 'ru' }) {
             )}
             {!!r.best && (
               <Text style={st.rowBest}>
-                {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')
-                  + r.best.ammo.ic + ' ×' + fmtTh(r.best.count * r.n)
-                  + '  ≈' + fmtTh(r.best.cost * r.n) + ' 🟡'}
+                {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')}
+                {r.best.ammo.icon ? <Image source={require(r.best.ammo.icon)} style={{ width: 14, height: 14, borderRadius: 3, resizeMode: 'contain', marginRight: 2 }} /> : r.best.ammo.ic}
+                {' ×' + fmtTh(r.best.count * r.n) + '  ≈' + fmtTh(r.best.cost * r.n) + ' 🟡'}
               </Text>
             )}
           </View>
@@ -489,7 +495,10 @@ function NodesView({ lang, back }) {
           const yieldN = Math.round(node.base * (1 + tea.pct / 100));
           return (
             <View key={tool.ru} style={st.toolCard}>
-              <Text style={st.toolName} numberOfLines={1}>{tool.ic + ' ' + (lang === 'ru' ? tool.ru : tool.en)}</Text>
+              <Text style={st.toolName} numberOfLines={1}>
+                {tool.icon ? <Image source={require(tool.icon)} style={{ width: 14, height: 14, borderRadius: 3, resizeMode: 'contain', marginRight: 3 }} /> : null}
+                {lang === 'ru' ? tool.ru : tool.en}
+              </Text>
               <View style={st.toolChips}>
                 <View style={st.toolChip}>
                   <Text style={st.toolChipTxt}>
@@ -578,9 +587,9 @@ export function EcoRaidScreen({ lang = 'ru' }) {
             <Text style={st.rowName} numberOfLines={1}>{lang === 'ru' ? r.b.name.ru : r.b.name.en}</Text>
             {!!r.best && (
               <Text style={st.rowBest}>
-                {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')
-                  + r.best.tool.ic + ' ×' + fmtTh(r.best.hits * r.n)
-                  + '  (' + fmtDurLong(r.best.time * r.n, lang) + ')'}
+                {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')}
+                {r.best.tool.icon ? <Image source={require(r.best.tool.icon)} style={{ width: 14, height: 14, borderRadius: 3, resizeMode: 'contain', marginRight: 2 }} /> : r.best.tool.ic}
+                {' ×' + fmtTh(r.best.hits * r.n) + '  (' + fmtDurLong(r.best.time * r.n, lang) + ')'}
               </Text>
             )}
           </View>

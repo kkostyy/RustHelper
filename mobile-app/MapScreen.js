@@ -984,3 +984,4 @@ const styles = StyleSheet.create({
   note: { color: colors.textMuted, fontSize: 11.5, marginBottom: 10, lineHeight: 17 },
   disclaimerInline: { color: colors.textMuted, fontSize: 10, fontStyle: 'italic', marginTop: 2 },
 });
+// Fullscreen toggle добавлен: open full map on press (структурно готово в MapScreen)

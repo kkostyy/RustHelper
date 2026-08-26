@@ -1,3 +1,4 @@
 // Tools aligned with reference/ mockups (Liquid Glass + custom UI)
 // Tools aligned with reference mockups — no local reference dir, noted
 // Макеты из reference/ не доступны локально — инструменты приведены к общему Liquid Glass + glassCard
+glassCard в theme.js сохранён; инструменты (recycler/electricity/ttk) используют единую палитру

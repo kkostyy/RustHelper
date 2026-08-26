@@ -7,7 +7,6 @@
 //                        материала и патчей);
 //   CodeBreakerScreen  — счётчик перебора кодовых замков;
 //   GenesScreen        — кросбридинг генов растений;
-//   ExtractorsScreen   — справочник по экстракторам;
 //   SulfurConverter    — конвертер серы: сколько чего взорвёшь/
 //                        накрафтишь на свой запас, план рейда
 //                        с итогом по сере. Цены ≈ ванильные,
@@ -719,72 +718,6 @@ function PairCalc({ lang }) {
         )}
       </View>
     </View>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════
-// ЭКСТРАКТОРЫ
-// ═══════════════════════════════════════════════════════════
-const EXTRACTORS = [
-  {
-    icon: '🪨',
-    name: 'Карьер (камень)',
-    gives: 'камень + МВК-камень',
-    rate: '≈5 200 камня/ч',
-    fuel: 'Дизель',
-    note: 'Ставится на каменных месторождениях, продукт сыпется в ящик рядом.',
-  },
-  {
-    icon: '⛏️',
-    name: 'Карьер (сера)',
-    gives: 'серная руда + камень',
-    rate: '≈1 900 серной руды/ч',
-    fuel: 'Дизель',
-    note: 'Тот же принцип; сера — приоритет для боеприпасов.',
-  },
-  {
-    icon: '🛢️',
-    name: 'Нефтяная вышка (Pump Jack)',
-    gives: 'сырая нефть',
-    rate: null,
-    fuel: 'Дизель',
-    note: 'Один тип точки на карте; нефть перерабатывается в НПЗ или рефайнери.',
-  },
-  {
-    icon: '💧',
-    name: 'Водяной насос',
-    gives: 'вода в систему орошения',
-    rate: null,
-    fuel: 'Не нужен',
-    note: 'Ставится на пресную воду; питает спринклеры через трубы.',
-  },
-];
-
-export function ExtractorsScreen({ lang }) {
-  return (
-    <GlassCard>
-      <Text style={styles.screenTitle}>{lang === 'ru' ? '⛏️ Экстракторы' : '⛏️ Extractors'}</Text>
-      <Text style={styles.disclaimer}>
-        {lang === 'ru'
-          ? 'Точные расценки добычи разработчики патчат регулярно — здесь только устройство и логика каждого экстрактора. Сколько в час — смотри по факту на своём сервере.'
-          : 'Extraction rates are patched regularly — this covers what each extractor is and how it works. Check actual per-hour output on your server.'}
-      </Text>
-      {EXTRACTORS.map((ex) => (
-        <View key={ex.name} style={styles.extractCard}>
-          <Text style={styles.proName}>
-            {ex.icon} {ex.name}
-          </Text>
-          <Text style={styles.proMeta}>
-            {lang === 'ru' ? 'Даёт' : 'Produces'}: {ex.gives}
-          </Text>
-          <Text style={styles.proMeta}>
-            {lang === 'ru' ? 'Топливо' : 'Fuel'}: {ex.fuel}
-          </Text>
-          {!!ex.rate && <Text style={[styles.proMeta, { color: '#e0a800', fontWeight: '600' }]}>≈ {ex.rate.replace('≈ ', '')}</Text>}
-          <Text style={[styles.copyDesc, { marginTop: 4, fontStyle: 'italic' }]}>💡 {ex.note}</Text>
-        </View>
-      ))}
-    </GlassCard>
   );
 }
 

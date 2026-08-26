@@ -29,13 +29,17 @@ import {
   RaidCalcScreen,
   CodeBreakerScreen,
   GenesScreen,
-  ExtractorsScreen,
   SulfurConverterScreen,
   ElectricityScreen,
 } from './ToolsScreen';
 import { AdminPanelScreen } from './AdminPanelScreen';
 import DecayCalcScreen from './DecayCalcScreen';
 import RecyclerMachineScreen from './RecyclerMachineScreen';
+import {
+  ExcavatorCalcScreen,
+  QuarryCalcScreen,
+  PumpjackCalcScreen,
+} from './HarvesterCalcScreens';
 
 const PRO_CONFIGS = [
   { name: 'Shatskov', sens: '3.1', dpi: '800', fov: '90', res: '1920x1080' },
@@ -130,7 +134,9 @@ const TOOL_TOPICS = [
   { id: 'sulfur', icon: '🟡', color: '#e0a800', title: { ru: 'Конвертер серы', en: 'Sulfur Converter' }, desc: { ru: 'Запас серы → ракеты, C4, патроны', en: 'Sulfur stock → rockets, C4, ammo' } },
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Копилка дверных кодов + счётчик перебора', en: 'Door-code vault + brute-force counter' } },
   { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Скрещивание (ферма)', en: 'Crossbreeding (Farm)' }, desc: { ru: 'Клоны, цель и рекомендованные планы', en: 'Clones, target & recommended plans' } },
-  { id: 'extractors', icon: '⛏️', color: eventPalette.purple, title: { ru: 'Экстракторы', en: 'Extractors' }, desc: { ru: 'Карьеры, вышка, водяной насос', en: 'Quarries, pump jack, water pump' } },
+  { id: 'excavator', icon: '🏗️', color: eventPalette.orange, title: { ru: 'Экскаватор (большой)', en: 'Giant Excavator' }, desc: { ru: 'Дизель → ВКМ, сера, металл, камень', en: 'Diesel → HQM, sulfur, metal, stones' } },
+  { id: 'quarry', icon: '⛏️', color: eventPalette.purple, title: { ru: 'Карьер', en: 'Mining Quarry' }, desc: { ru: 'Камень / сера / ВКМ — дизель ↔ ресурс', en: 'Stone / sulfur / HQM — diesel ↔ resource' } },
+  { id: 'pumpjack', icon: '🛢️', color: '#e0a800', title: { ru: 'Нефтекачка', en: 'Pump Jack' }, desc: { ru: 'Дизель ↔ нефть', en: 'Diesel ↔ crude oil' } },
   { id: 'recycler', icon: '♻️', color: eventPalette.teal, title: { ru: 'Рециклер', en: 'Recycler' }, desc: { ru: '6 слотов как в игре: компоненты → ресурсы', en: '6 slots like in game: components → resources' } },
   { id: 'electricity', icon: '⚡', color: eventPalette.orange, title: { ru: 'Электрика базы', en: 'Electricity Planner' }, desc: { ru: 'Источники против нагрузки (rWm)', en: 'Sources vs base load (rWm)' } },
   { id: 'decay', icon: '🧱', color: '#a3814f', title: { ru: 'Калькулятор гниения', en: 'Decay Calculator' }, desc: { ru: 'Когда строение сгниёт полностью — и бей', en: 'When a building fully decays — strike then' } },
@@ -578,10 +584,12 @@ const TOOL_SCREENS = {
   sulfur: SulfurConverterScreen,
   codebreaker: CodeBreakerScreen,
   genes: GenesScreen,
-  extractors: ExtractorsScreen,
   recycler: RecyclerMachineScreen,
   electricity: ElectricityScreen,
   decay: DecayCalcScreen,
+  excavator: ExcavatorCalcScreen,
+  quarry: QuarryCalcScreen,
+  pumpjack: PumpjackCalcScreen,
 };
 
 // Кнопка «назад» внутри подменю

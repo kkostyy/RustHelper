@@ -17,7 +17,7 @@ import { CCTV_MONUMENTS } from './data/cctvCodes';
 import { MONUMENTS_GUIDE } from './data/monumentsGuide';
 import { TEA_RECIPES } from './data/teaRecipes';
 import { ACCESS_CARDS } from './data/accessCards';
-import { WEAPON_DAMAGE } from './data/weaponDamage';
+import { WEAPON_DAMAGE, ARMOR_SETS } from './data/weaponDamage';
 import {
   CRATE_LOOT,
   NPC_LOOT,
@@ -31,7 +31,10 @@ import {
   GenesScreen,
   ExtractorsScreen,
   SulfurConverterScreen,
+  RecyclerCalcScreen,
+  ElectricityScreen,
 } from './ToolsScreen';
+import { AdminPanelScreen } from './AdminPanelScreen';
 
 const PRO_CONFIGS = [
   { name: 'Shatskov', sens: '3.1', dpi: '800', fov: '90', res: '1920x1080' },
@@ -96,7 +99,14 @@ const SECTIONS = [
     icon: '🧮',
     color: eventPalette.red,
     title: { ru: 'Инструменты', en: 'Tools' },
-    desc: { ru: 'Рейд-калькулятор, конвертер серы и ещё 3', en: 'Raid calc, sulfur converter & 3 more' },
+    desc: { ru: 'Рейд-калькулятор, рециклер, электрика и ещё 4', en: 'Raid calc, recycler, electricity & 4 more' },
+  },
+  {
+    id: 'admin',
+    icon: '🛡️',
+    color: eventPalette.blue,
+    title: { ru: 'Админ-панель', en: 'Admin Panel' },
+    desc: { ru: 'Права администратора и ютуберы', en: 'Admin rights & YouTuber settings' },
   },
 ];
 
@@ -120,6 +130,8 @@ const TOOL_TOPICS = [
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Перебор кодового замка без сбоя', en: 'Door-lock code brute-force counter' } },
   { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Кросбридинг генов', en: 'Gene Crossbreeding' }, desc: { ru: 'Идеальный потомок двух растений', en: 'Best offspring of two plants' } },
   { id: 'extractors', icon: '⛏️', color: eventPalette.purple, title: { ru: 'Экстракторы', en: 'Extractors' }, desc: { ru: 'Карьеры, вышка, водяной насос', en: 'Quarries, pump jack, water pump' } },
+  { id: 'recycler', icon: '♻️', color: eventPalette.teal, title: { ru: 'Переработка', en: 'Recycler Calculator' }, desc: { ru: 'Компоненты → металл, ВКМ и скрап', en: 'Components → metal, HQM & scrap' } },
+  { id: 'electricity', icon: '⚡', color: eventPalette.orange, title: { ru: 'Электрика базы', en: 'Electricity Planner' }, desc: { ru: 'Источники против нагрузки (rWm)', en: 'Sources vs base load (rWm)' } },
 ];
 
 function CopyButton({ value }) {
@@ -376,7 +388,13 @@ function TeasInfo({ lang }) {
             {tea.icon} {tea.name}
           </Text>
           <Text style={styles.proMeta}>{tea.effect}</Text>
-          <Text style={styles.proMeta}>≈ {tea.bonus.replace('≈ ', '')}</Text>
+          {/* Три стадии варки (ТЗ 2.5): Basic / Advanced / Pure */}
+          {tea.stages.map((s) => (
+            <View key={s.stage} style={styles.teaStageRow}>
+              <Text style={styles.teaStageLbl}>{s.stage}</Text>
+              <Text style={styles.proMeta}>{s.bonus}</Text>
+            </View>
+          ))}
           <Text style={[styles.copyDesc, { marginTop: 4, fontStyle: 'italic' }]}>💡 {tea.note}</Text>
         </View>
       ))}
@@ -400,6 +418,23 @@ function DamageInfo({ lang }) {
             <Text style={[styles.proName, { color: eventPalette.orange }]}>{w.dmg}</Text>
           </View>
           <Text style={styles.copyDesc}>💡 {w.note}</Text>
+        </View>
+      ))}
+
+      {/* Броня (ТЗ 2.5): Kevlar и остальные сеты */}
+      <Text style={[styles.groupTitle, { marginTop: 14 }]}>
+        {lang === 'ru' ? 'БРОНЯ: СНИЖЕНИЕ УРОНА' : 'ARMOR: DAMAGE REDUCTION'}
+      </Text>
+      {ARMOR_SETS.map((a) => (
+        <View key={a.name} style={styles.monCard}>
+          <View style={styles.proHeader}>
+            <Text style={styles.proName}>
+              {!!a.tag && <Text style={{ color: eventPalette.green }}>🆕 </Text>}
+              {a.name}
+            </Text>
+            <Text style={[styles.proName, { color: eventPalette.orange }]}>{a.reduction}</Text>
+          </View>
+          <Text style={styles.copyDesc}>💡 {a.note}</Text>
         </View>
       ))}
     </GlassCard>
@@ -542,6 +577,8 @@ const TOOL_SCREENS = {
   codebreaker: CodeBreakerScreen,
   genes: GenesScreen,
   extractors: ExtractorsScreen,
+  recycler: RecyclerCalcScreen,
+  electricity: ElectricityScreen,
 };
 
 // Кнопка «назад» внутри подменю
@@ -638,6 +675,7 @@ export default function OtherScreen({ lang, t }) {
       <BackBtn lang={lang} onPress={() => setSub(null)} />
       {sub === 'binds' && <BindsScreen lang={lang} />}
       {sub === 'pros' && <ProConfigsScreen lang={lang} />}
+      {sub === 'admin' && <AdminPanelScreen lang={lang} />}
     </ScrollView>
   );
 }
@@ -735,5 +773,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
+  },
+  teaStageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  teaStageLbl: {
+    color: eventPalette.teal,
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    width: 74,
   },
 });

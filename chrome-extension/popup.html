@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: system-ui, sans-serif; width: 260px; padding: 12px; background: #0a1a2f; color: #eaf2fb; }
+    h1 { font-size: 14px; margin: 0 0 8px; }
+    .st { font-size: 11px; opacity: .75; margin-bottom: 10px; white-space: pre-wrap; }
+    input { width: 100%; box-sizing: border-box; font-size: 11px; padding: 6px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: #fff; margin-bottom: 8px; }
+    button { width: 100%; padding: 7px; border: 0; border-radius: 999px; cursor: pointer;
+             background: #3b82f6; color: #fff; font-weight: 600; }
+    button:active { opacity: .8; }
+    #out { font-size: 11px; margin-top: 8px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>🛰️ S-eye Bridge</h1>
+  <div class="st" id="status">…</div>
+  <input id="srv" placeholder="http://127.0.0.1:28015" />
+  <button id="push">Отправить на ПК → телефон</button>
+  <div id="out"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

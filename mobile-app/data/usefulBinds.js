@@ -50,4 +50,15 @@ export const USEFUL_BINDS = [
       },
     ],
   },
+  {
+    group: 'Новые бинды (ТЗ 2.4)',
+    items: [
+      { cmd: 'bind p chat.open team', desc: 'Открыть тим-чат одной клавишей' },
+      { cmd: 'bind o craft.cancel', desc: 'Мгновенная отмена текущего крафта' },
+      { cmd: 'bind m audio.game 0', desc: 'Быстрый мьют игры (повторный ввод вернёт громкость)' },
+      { cmd: 'bind [ "attack;+attack2"', desc: 'Комбо-удар: удар + блок на одну кнопку' },
+      { cmd: 'bind ] +lighttoggle', desc: 'Переключить фонарик/лазер без меню' },
+      { cmd: 'bind , "inventory.toggle;craft.toggle"', desc: 'Инвентарь + окно крафта разом' },
+    ],
+  },
 ];

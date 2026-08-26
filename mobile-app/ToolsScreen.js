@@ -473,6 +473,186 @@ export function SulfurConverterScreen({ lang }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════
+// СПРАВОЧНИК ПЕРЕРАБОТКИ (Recycler Calculator)
+// Вводишь найденные компоненты — считаем выход металла/ВКМ/скрапа.
+// Значения ≈ ванильные и редактируемые (репо-конвенция: никаких
+// «авторитетных» констант — рециклер правят патчами).
+// ═══════════════════════════════════════════════════════════
+export function RecyclerCalcScreen({ lang }) {
+  // [металл, ВКМ, скрап] с одного компонента на рециклере ≈
+  const [rules, setRules] = useState({
+    gears: { ic: '⚙️', name: { ru: 'Шестерни', en: 'Gears' }, out: ['13', '3', '0'] },
+    springs: { ic: '🪃', name: { ru: 'Пружины', en: 'Springs' }, out: ['30', '1', '0'] },
+    pipes: { ic: '🔧', name: { ru: 'Трубы', en: 'Metal Pipes' }, out: ['5', '1', '0'] },
+    sheet: { ic: '📃', name: { ru: 'Листовой металл', en: 'Sheet Metal' }, out: ['8', '0', '2'] },
+    smgBody: { ic: '🔩', name: { ru: 'Корпус SMG', en: 'SMG Body' }, out: ['4', '2', '4'] },
+    rifleBody: { ic: '🔫', name: { ru: 'Корпус винтовки', en: 'Rifle Body' }, out: ['4', '3', '6'] },
+  });
+  const [qty, setQty] = useState({});
+
+  const totals = { mf: 0, hqm: 0, scrap: 0 };
+  Object.keys(rules).forEach((k) => {
+    const n = parseNum(qty[k], 0);
+    totals.mf += n * parseNum(rules[k].out[0], 0);
+    totals.hqm += n * parseNum(rules[k].out[1], 0);
+    totals.scrap += n * parseNum(rules[k].out[2], 0);
+  });
+
+  return (
+    <GlassCard>
+      <Text style={styles.screenTitle}>{lang === 'ru' ? '♻️ Переработка' : '♻️ Recycler Calculator'}</Text>
+      <Text style={styles.disclaimer}>
+        {lang === 'ru'
+          ? '≈ Выход с одного компонента на рециклере, значения редактируемые — баланс переработки разработчики двигают патчами. Сверяй после апдейтов.'
+          : '≈ Output per component at the recycler, editable values — recycling balance is patched regularly. Re-check after updates.'}
+      </Text>
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+        {[['mf', lang === 'ru' ? 'Металл' : 'Metal'], ['hqm', 'ВКМ'], ['scrap', 'Scrap']].map(([k, lbl]) => (
+          <View key={k} style={{ flex: 1 }}>
+            <TextInput
+              style={[styles.inputMono, { fontSize: 14 }]}
+              value={String(totals[k])}
+              editable={false}
+            />
+            <Text style={styles.unitLbl}>{lbl}</Text>
+          </View>
+        ))}
+      </View>
+      {Object.keys(rules).map((k) => (
+        <View key={k} style={styles.copyRow}>
+          <Text style={{ fontSize: 15, marginRight: 6 }}>{rules[k].ic}</Text>
+          <Text style={[styles.copyDesc, { flex: 1 }]}>
+            {lang === 'ru' ? rules[k].name.ru : rules[k].name.en}
+          </Text>
+          <TextInput
+            style={[styles.inputMono, { width: 56, textAlign: 'center', paddingVertical: 4 }]}
+            value={qty[k] || ''}
+            onChangeText={(v) => setQty((q) => ({ ...q, [k]: v.replace(/[^0-9]/g, '') }))}
+            keyboardType="number-pad"
+            placeholder="0"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+          />
+        </View>
+      ))}
+      <Text style={styles.disclaimerNoBox}>
+        {lang === 'ru'
+          ? '≈ Рециклер делит выход на стак: считай поштучно. Правила переработки также лежат в mobile-app/recyclerCalc.js.'
+          : '≈ The recycler splits output per stack: count items individually. Rules also live in mobile-app/recyclerCalc.js.'}
+      </Text>
+    </GlassCard>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// КАЛЬКУЛЯТОР ЭЛЕКТРОНИКИ (Electricity Planner)
+// Мощность источников против нагрузки базы: ничего не отрубится.
+// Все цифры ≈ и редактируемые (rWm — единицы Rust-электрики).
+// ═══════════════════════════════════════════════════════════
+export function ElectricityScreen({ lang }) {
+  // Источники: [штук, rWm каждый]
+  const [src, setSrc] = useState({
+    wind: { ic: '🌬️', name: { ru: 'Ветряк (сред.)', en: 'Wind Turbine (avg)' }, n: '1', rw: '150' },
+    gen: { ic: '⛽', name: { ru: 'Генератор', en: 'Small Generator' }, n: '0', rw: '20' },
+    battery: { ic: '🔋', name: { ru: 'Большая батарея', en: 'Large Battery' }, n: '1', rw: '100' },
+  });
+  // Нагрузка: [штук, rWm потребление]
+  const [load, setLoad] = useState({
+    turret: { ic: '🔫', name: { ru: 'Турели', en: 'Auto Turrets' }, n: '0', rw: '10' },
+    light: { ic: '💡', name: { ru: 'Лампы', en: 'Lights' }, n: '0', rw: '2' },
+    door: { ic: '🚪', name: { ru: 'Электро-двери/замки', en: 'Door controllers' }, n: '0', rw: '1' },
+    other: { ic: '🔌', name: { ru: 'Прочее', en: 'Other devices' }, n: '0', rw: '5' },
+  });
+
+  const sum = (obj) =>
+    Object.keys(obj).reduce(
+      (acc, k) => acc + parseNum(obj[k].n, 0) * parseNum(obj[k].rw, 0),
+      0,
+    );
+  const totalW = sum(src);
+  const loadW = sum(load);
+  const surplus = totalW - loadW;
+  const ok = surplus >= 0;
+
+  return (
+    <GlassCard>
+      <Text style={styles.screenTitle}>{lang === 'ru' ? '⚡ Планировщик электрики' : '⚡ Electricity Planner'}</Text>
+      <Text style={styles.disclaimer}>
+        {lang === 'ru'
+          ? '≈ Единицы Rust-электрики (rWm). Ветряк плавает от погоды — среднее значение; батарея сглаживает проседания. Цифры редактируемые, сверяй на своём сервере.'
+          : '≈ Rust electric units (rWm). Wind output floats with weather — average shown; a battery smooths dips. Editable values, verify on your server.'}
+      </Text>
+
+      <View style={[styles.totalBox, !ok && styles.totalBoxOver]}>
+        <Text style={styles.totalLabel}>{lang === 'ru' ? 'Баланс мощности' : 'Power balance'}</Text>
+        <Text style={styles.totalVal}>
+          {fmtNum(totalW)} − {fmtNum(loadW)} ={' '}
+          <Text style={{ color: ok ? eventPalette.green : eventPalette.red }}>
+            {ok ? '+' : ''}{fmtNum(surplus)}
+          </Text>
+        </Text>
+        <Text style={[styles.totalSub, { color: ok ? eventPalette.green : eventPalette.red }]}>
+          {ok
+            ? lang === 'ru' ? '✓ запас есть — ничего не отключится' : '✓ headroom left — nothing shuts off'
+            : lang === 'ru' ? '⚠️ не хватает — при нагрузке отрубит' : '⚠️ short — brownouts under load'}
+        </Text>
+      </View>
+
+      <Text style={styles.subsection}>{lang === 'ru' ? 'ИСТОЧНИКИ' : 'SOURCES'}</Text>
+      {Object.keys(src).map((k) => (
+        <View key={k} style={styles.copyRow}>
+          <Text style={{ fontSize: 15, marginRight: 6 }}>{src[k].ic}</Text>
+          <Text style={[styles.copyDesc, { flex: 1 }]}>
+            {lang === 'ru' ? src[k].name.ru : src[k].name.en}
+          </Text>
+          <TextInput
+            style={[styles.inputMono, { width: 40, textAlign: 'center', paddingVertical: 4 }]}
+            value={src[k].n}
+            onChangeText={(v) => setSrc((s) => ({ ...s, [k]: { ...s[k], n: v.replace(/[^0-9]/g, '') } }))}
+            keyboardType="number-pad"
+            placeholder="0"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+          />
+          <Text style={styles.unitLbl}>×</Text>
+          <TextInput
+            style={[styles.inputMono, { width: 48, textAlign: 'center', paddingVertical: 4 }]}
+            value={src[k].rw}
+            onChangeText={(v) => setSrc((s) => ({ ...s, [k]: { ...s[k], rw: v.replace(/[^0-9]/g, '') } }))}
+            keyboardType="number-pad"
+          />
+          <Text style={styles.unitLbl}>rWm</Text>
+        </View>
+      ))}
+
+      <Text style={styles.subsection}>{lang === 'ru' ? 'НАГРУЗКА' : 'LOAD'}</Text>
+      {Object.keys(load).map((k) => (
+        <View key={k} style={styles.copyRow}>
+          <Text style={{ fontSize: 15, marginRight: 6 }}>{load[k].ic}</Text>
+          <Text style={[styles.copyDesc, { flex: 1 }]}>
+            {lang === 'ru' ? load[k].name.ru : load[k].name.en}
+          </Text>
+          <TextInput
+            style={[styles.inputMono, { width: 40, textAlign: 'center', paddingVertical: 4 }]}
+            value={load[k].n}
+            onChangeText={(v) => setLoad((l) => ({ ...l, [k]: { ...l[k], n: v.replace(/[^0-9]/g, '') } }))}
+            keyboardType="number-pad"
+            placeholder="0"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+          />
+          <Text style={styles.unitLbl}>×</Text>
+          <TextInput
+            style={[styles.inputMono, { width: 48, textAlign: 'center', paddingVertical: 4 }]}
+            value={load[k].rw}
+            onChangeText={(v) => setLoad((l) => ({ ...l, [k]: { ...l[k], rw: v.replace(/[^0-9]/g, '') } }))}
+            keyboardType="number-pad"
+          />
+          <Text style={styles.unitLbl}>rWm</Text>
+        </View>
+      ))}
+    </GlassCard>
+  );
+}
+
 const styles = StyleSheet.create({
   screenTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 10 },
   subsection: {

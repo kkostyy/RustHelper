@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "S-eye viewer Bridge",
+  "version": "0.1.0",
+  "description": "Мост S-eye viewer: забирает токен и данные при регистрации и отправляет по цепочке Расширение → Сервер на ПК → Телефон (ТЗ 2.3).",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["http://localhost/*", "http://127.0.0.1/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

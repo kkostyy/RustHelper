@@ -32,6 +32,7 @@ import {
   ElectricityScreen,
 } from './ToolsScreen';
 import { RaidPlanScreen, EcoRaidScreen, CustomRaidScreen } from './RaidPlanScreen';
+import ShopScreen from './ShopScreen';
 import { AdminPanelScreen } from './AdminPanelScreen';
 import UsefulInfoScreen from './UsefulInfoScreen';
 import DecayCalcScreen from './DecayCalcScreen';
@@ -137,6 +138,7 @@ const TOOL_TOPICS = [
   { id: 'raidCustom', icon: '🧩', color: eventPalette.blue, title: { ru: 'Рейд Кальк Кастом (Legacy)', en: 'Custom Raid Calc (Legacy)' }, desc: { ru: 'Бумы по каждому строению с живым ХП', en: 'Apply explosives per structure with live HP' } },
   { id: 'sulfur', icon: '🟡', color: '#e0a800', title: { ru: 'Конвертер серы', en: 'Sulfur Converter' }, desc: { ru: 'Запас серы → ракеты, C4, патроны', en: 'Sulfur stock → rockets, C4, ammo' } },
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Копилка дверных кодов + счётчик перебора', en: 'Door-code vault + brute-force counter' } },
+  { id: 'shops', icon: '🏪', color: '#e0a800', title: { ru: 'Магазины', en: 'Shops / Vendors' }, desc: { ru: 'Категории вендоров, цены, ссылки на docs/', en: 'Vendor categories, prices, docs/ links' } },
   { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Скрещивание (ферма)', en: 'Crossbreeding (Farm)' }, desc: { ru: 'Клоны, цель и рекомендованные планы', en: 'Clones, target & recommended plans' } },
   { id: 'excavator', icon: '🏗️', color: eventPalette.orange, title: { ru: 'Экскаватор (большой)', en: 'Giant Excavator' }, desc: { ru: 'Дизель → ВКМ, сера, металл, камень', en: 'Diesel → HQM, sulfur, metal, stones' } },
   { id: 'quarry', icon: '⛏️', color: eventPalette.purple, title: { ru: 'Карьер', en: 'Mining Quarry' }, desc: { ru: 'Камень / сера / ВКМ — дизель ↔ ресурс', en: 'Stone / sulfur / HQM — diesel ↔ resource' } },
@@ -590,6 +592,7 @@ const TOOL_SCREENS = {
   raidCustom: CustomRaidScreen,
   sulfur: SulfurConverterScreen,
   codebreaker: CodeBreakerScreen,
+  shops: ShopScreen,
   genes: GenesScreen,
   recycler: RecyclerMachineScreen,
   electricity: ElectricityScreen,

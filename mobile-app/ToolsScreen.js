@@ -1,10 +1,7 @@
 // ─────────────────────────────────────────────────────────
 // ИНСТРУМЕНТЫ («Другое → Инструменты»). Каждый инструмент —
 // отдельный под-экран (меню рисует OtherScreen):
-//   RaidCalcScreen     — рейд-калькулятор по целям + расчёт
-//                        своей стены по HP (≈ урон боеприпаса
-//                        редактируемый — цифры зависят от
-//                        материала и патчей);
+//   Рейд-калькулятор переехал в RaidPlanScreen.js (Legacy).
 //   CodeBreakerScreen  — счётчик перебора кодовых замков;
 //   GenesScreen        — кросбридинг генов растений;
 //   SulfurConverter    — конвертер серы: сколько чего взорвёшь/
@@ -19,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { colors, eventPalette } from './theme';
 import { GlassCard } from './ui';
-import { RAID_TARGETS } from './data/raidTargets';
 
 function fmtNum(n) {
   // ручная группировка разрядов: Hermes без Intl не знает toLocaleString
@@ -29,101 +25,6 @@ function fmtNum(n) {
 function parseNum(v, fallback) {
   const n = Number(String(v).replace(/[^0-9]/g, ''));
   return Number.isFinite(n) && String(v).trim() !== '' ? n : fallback;
-}
-
-// ═══════════════════════════════════════════════════════════
-// РЕЙД-КАЛЬКУЛЯТОР
-// ═══════════════════════════════════════════════════════════
-export function RaidCalcScreen({ lang }) {
-  const [hp, setHp] = useState('1000');
-  // ≈ урон по цели на ванильном балансе; материал стены и патчи меняют цифры
-  const [dmg, setDmg] = useState({ c4: '550', rocket: '350', satchel: '90' });
-
-  const hpN = parseNum(hp, 0);
-  const est = {
-    c4: Math.ceil(hpN / Math.max(1, parseNum(dmg.c4, 550))),
-    rocket: Math.ceil(hpN / Math.max(1, parseNum(dmg.rocket, 350))),
-    satchel: Math.ceil(hpN / Math.max(1, parseNum(dmg.satchel, 90))),
-  };
-
-  return (
-    <GlassCard>
-      <Text style={styles.screenTitle}>{lang === 'ru' ? '💣 Рейд-калькулятор' : '💣 Raid Calculator'}</Text>
-
-      {/* Готовые цели */}
-      <Text style={styles.subsection}>{lang === 'ru' ? 'ТИПОВЫЕ ЦЕЛИ' : 'COMMON TARGETS'}</Text>
-      <Text style={styles.disclaimer}>
-        {lang === 'ru'
-          ? 'Цифры для жёсткой стороны на ванильном балансе, сверены на август 2026. Сервер может использовать другой баланс урона — если числа не сходятся в игре, доверяйте своему опыту на конкретном сервере.'
-          : 'Numbers for the hard side on vanilla balance, checked August 2026. A server may use different damage scaling — if the numbers don\'t add up in game, trust your experience on that server.'}
-      </Text>
-      {RAID_TARGETS.map((tg) => (
-        <View key={tg.id} style={styles.raidCard}>
-          <View style={styles.raidHeaderRow}>
-            <Text style={styles.raidTitle}>{tg.name}</Text>
-            <Text style={styles.raidHp}>{tg.hp} HP</Text>
-          </View>
-          <View style={styles.raidStatsRow}>
-            {tg.c4 != null && <Text style={styles.raidStat}>💣 C4 ×{tg.c4}</Text>}
-            {tg.rockets != null && <Text style={styles.raidStat}>🚀 ×{tg.rockets}</Text>}
-            {tg.satchels != null && (
-              <Text style={styles.raidStat}>🎒 ×{tg.satchels}</Text>
-            )}
-          </View>
-          <Text style={styles.raidSulfur}>~{fmtNum(tg.sulfur)} {lang === 'ru' ? 'серы' : 'sulfur'}</Text>
-          {!!tg.note && <Text style={styles.raidNote}>{tg.note}</Text>}
-        </View>
-      ))}
-
-      {/* Своя цель: HP → количество боеприпасов */}
-      <Text style={styles.subsection}>{lang === 'ru' ? 'СВОЯ ЦЕЛЬ ПО HP' : 'CUSTOM TARGET BY HP'}</Text>
-      <View style={styles.calcBox}>
-        <Text style={styles.label}>{lang === 'ru' ? 'HP цели' : 'Target HP'}</Text>
-        <TextInput
-          style={[styles.inputMono, { color: eventPalette.orange }]}
-          value={hp}
-          onChangeText={(v) => setHp(v.replace(/[^0-9]/g, ''))}
-          keyboardType="number-pad"
-          placeholder="1000"
-          placeholderTextColor="rgba(255,255,255,0.3)"
-        />
-        <Text style={styles.label}>{lang === 'ru' ? '≈ урон одного боеприпаса (можно править)' : '≈ damage per explosive (editable)'}</Text>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {[['c4', '💣'], ['rocket', '🚀'], ['satchel', '🎒']].map(([k, ic]) => (
-            <View key={k} style={{ flex: 1 }}>
-              <TextInput
-                style={[styles.inputMono, { fontSize: 14, letterSpacing: 0 }]}
-                value={dmg[k]}
-                onChangeText={(v) => setDmg((d) => ({ ...d, [k]: v.replace(/[^0-9]/g, '') }))}
-                keyboardType="number-pad"
-              />
-              <Text style={styles.unitLbl}>{ic} {dmg[k] || '—'} {lang === 'ru' ? 'урона' : 'dmg'}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.estGrid}>
-          <View style={styles.estCell}>
-            <Text style={styles.estVal}>×{fmtNum(est.c4)}</Text>
-            <Text style={styles.estLbl}>C4</Text>
-          </View>
-          <View style={styles.estCell}>
-            <Text style={styles.estVal}>×{fmtNum(est.rocket)}</Text>
-            <Text style={styles.estLbl}>{lang === 'ru' ? 'ракет' : 'rockets'}</Text>
-          </View>
-          <View style={styles.estCell}>
-            <Text style={styles.estVal}>×{fmtNum(est.satchel)}</Text>
-            <Text style={styles.estLbl}>{lang === 'ru' ? 'сатчелов' : 'satchels'}</Text>
-          </View>
-        </View>
-        <Text style={styles.disclaimerNoBox}>
-          {lang === 'ru'
-            ? '≈ Округление вверх; реальный расход зависит от материала стены, угла попадания и патчей — бери 1–2 про запас.'
-            : '≈ Rounded up; real usage depends on wall material, hit angle and patches — take 1–2 spare.'}
-        </Text>
-      </View>
-    </GlassCard>
-  );
 }
 
 // ═══════════════════════════════════════════════════════════

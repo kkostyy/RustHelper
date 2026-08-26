@@ -26,12 +26,12 @@ import {
   FRAGMENT_SOURCES,
 } from './data/lootTables';
 import {
-  RaidCalcScreen,
   CodeBreakerScreen,
   GenesScreen,
   SulfurConverterScreen,
   ElectricityScreen,
 } from './ToolsScreen';
+import { RaidPlanScreen } from './RaidPlanScreen';
 import { AdminPanelScreen } from './AdminPanelScreen';
 import DecayCalcScreen from './DecayCalcScreen';
 import RecyclerMachineScreen from './RecyclerMachineScreen';
@@ -130,7 +130,7 @@ const INFO_TOPICS = [
 
 // Инструменты — тоже отдельные экраны
 const TOOL_TOPICS = [
-  { id: 'raid', icon: '💣', color: eventPalette.red, title: { ru: 'Рейд-калькулятор', en: 'Raid Calculator' }, desc: { ru: 'Цели + расчёт своей стены по HP', en: 'Targets + custom wall by HP' } },
+  { id: 'raid', icon: '💣', color: eventPalette.red, title: { ru: 'Рейд-калькулятор (Legacy)', en: 'Raid Calculator (Legacy)' }, desc: { ru: 'План по постройкам + сырые компоненты + ноды', en: 'Building plan + raw components + nodes' } },
   { id: 'sulfur', icon: '🟡', color: '#e0a800', title: { ru: 'Конвертер серы', en: 'Sulfur Converter' }, desc: { ru: 'Запас серы → ракеты, C4, патроны', en: 'Sulfur stock → rockets, C4, ammo' } },
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Копилка дверных кодов + счётчик перебора', en: 'Door-code vault + brute-force counter' } },
   { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Скрещивание (ферма)', en: 'Crossbreeding (Farm)' }, desc: { ru: 'Клоны, цель и рекомендованные планы', en: 'Clones, target & recommended plans' } },
@@ -580,7 +580,7 @@ const INFO_SCREENS = {
 };
 
 const TOOL_SCREENS = {
-  raid: RaidCalcScreen,
+  raid: RaidPlanScreen,
   sulfur: SulfurConverterScreen,
   codebreaker: CodeBreakerScreen,
   genes: GenesScreen,

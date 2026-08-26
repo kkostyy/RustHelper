@@ -1,9 +1,4 @@
 // ─────────────────────────────────────────────────────────
-import DecayCalcScreen from "./DecayCalcScreen";
-import ExcavatorScreen from "./ExcavatorScreen";
-import QuarryScreen from "./QuarryScreen";
-import PumpjackScreen from "./PumpjackScreen";
-import CrossbreedingScreen from "./CrossbreedingScreen";
 // ИНСТРУМЕНТЫ («Другое → Инструменты»). Каждый инструмент —
 // отдельный под-экран (меню рисует OtherScreen):
 //   RaidCalcScreen     — рейд-калькулятор по целям + расчёт

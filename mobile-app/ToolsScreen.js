@@ -756,13 +756,11 @@ export function SulfurConverterScreen({ lang }) {
 // Все цифры ≈ и редактируемые (rWm — единицы Rust-электрики).
 // ═══════════════════════════════════════════════════════════
 export function ElectricityScreen({ lang }) {
-  // Источники: [штук, rWm каждый]
   const [src, setSrc] = useState({
-    wind: { ic: '🌬️', name: { ru: 'Ветряк (сред.)', en: 'Wind Turbine (avg)' }, n: '1', rw: '150' },
+    wind: { ic: '🌬️', icon: '../docs/items/advancedwarmingtea.png', name: { ru: 'Ветряк (сред.)', en: 'Wind Turbine (avg)' }, n: '1', rw: '150' },
     gen: { ic: '⛽', name: { ru: 'Генератор', en: 'Small Generator' }, n: '0', rw: '20' },
     battery: { ic: '🔋', name: { ru: 'Большая батарея', en: 'Large Battery' }, n: '1', rw: '100' },
   });
-  // Нагрузка: [штук, rWm потребление]
   const [load, setLoad] = useState({
     turret: { ic: '🔫', name: { ru: 'Турели', en: 'Auto Turrets' }, n: '0', rw: '10' },
     light: { ic: '💡', name: { ru: 'Лампы', en: 'Lights' }, n: '0', rw: '2' },
@@ -770,96 +768,100 @@ export function ElectricityScreen({ lang }) {
     other: { ic: '🔌', name: { ru: 'Прочее', en: 'Other devices' }, n: '0', rw: '5' },
   });
 
-  const sum = (obj) =>
-    Object.keys(obj).reduce(
-      (acc, k) => acc + parseNum(obj[k].n, 0) * parseNum(obj[k].rw, 0),
-      0,
-    );
+  const sum = (obj) => Object.values(obj).reduce((a, k) => a + parseNum(k.n, 0) * parseNum(k.rw, 0), 0);
   const totalW = sum(src);
   const loadW = sum(load);
   const surplus = totalW - loadW;
   const ok = surplus >= 0;
+  const bat = parseNum(src.battery.n, 1) * parseNum(src.battery.rw, 100);
+  const deficit = Math.max(0, loadW - totalW);
+  const batHours = deficit > 0 ? Math.round((bat / deficit) * 10) / 10 : null;
 
   return (
     <GlassCard>
-      <Text style={styles.screenTitle}>{lang === 'ru' ? '⚡ Планировщик электрики' : '⚡ Electricity Planner'}</Text>
-      <Text style={styles.disclaimer}>
-        {lang === 'ru'
-          ? '≈ Единицы Rust-электрики (rWm). Ветряк плавает от погоды — среднее значение; батарея сглаживает проседания. Цифры редактируемые, сверяй на своём сервере.'
-          : '≈ Rust electric units (rWm). Wind output floats with weather — average shown; a battery smooths dips. Editable values, verify on your server.'}
-      </Text>
+      <Text style={s.title}>{lang === 'ru' ? '⚡ Планировщик электрики' : '⚡ Electricity Planner'}</Text>
+      <Text style={s.sub}>{lang === 'ru' ? 'Схема базы · источники → нагрузка · ≈ ваниль (rWm)' : 'Base circuit · sources → load · ≈ vanilla (rWm)'}</Text>
 
-      <View style={[styles.totalBox, !ok && styles.totalBoxOver]}>
-        <Text style={styles.totalLabel}>{lang === 'ru' ? 'Баланс мощности' : 'Power balance'}</Text>
-        <Text style={styles.totalVal}>
-          {fmtNum(totalW)} − {fmtNum(loadW)} ={' '}
-          <Text style={{ color: ok ? eventPalette.green : eventPalette.red }}>
-            {ok ? '+' : ''}{fmtNum(surplus)}
-          </Text>
+      {/* баланс */}
+      <View style={[s.balance, !ok && s.balanceWarn]}>
+        <Text style={s.balLabel}>{lang === 'ru' ? 'Баланс мощности' : 'Power balance'}</Text>
+        <Text style={s.balNum}>{fmtNum(totalW)} − {fmtNum(loadW)} = <Text style={{ color: ok ? '#66bb6a' : '#ef4444', fontWeight: '800' }}>{ok ? '+' : ''}{fmtNum(surplus)}</Text></Text>
+        <Text style={[s.balSub, { color: ok ? '#66bb6a' : '#ef4444' }]}>
+          {ok ? (lang === 'ru' ? '✓ Запас есть' : '✓ Headroom') : (lang === 'ru' ? '⚠ Не хватает — отрубится' : '⚠ Short — brownouts')}
         </Text>
-        <Text style={[styles.totalSub, { color: ok ? eventPalette.green : eventPalette.red }]}>
-          {ok
-            ? lang === 'ru' ? '✓ запас есть — ничего не отключится' : '✓ headroom left — nothing shuts off'
-            : lang === 'ru' ? '⚠️ не хватает — при нагрузке отрубит' : '⚠️ short — brownouts under load'}
-        </Text>
+        {batHours !== null && (
+          <Text style={s.batHours}>{lang === 'ru' ? '🔋 Батарея на ' : '🔋 Battery lasts '} {batHours} {lang === 'ru' ? 'ч (при дефиците)' : 'h (at deficit)'}</Text>
+        )}
       </View>
 
-      <Text style={styles.subsection}>{lang === 'ru' ? 'ИСТОЧНИКИ' : 'SOURCES'}</Text>
-      {Object.keys(src).map((k) => (
-        <View key={k} style={styles.copyRow}>
-          <Text style={{ fontSize: 15, marginRight: 6 }}>{src[k].ic}</Text>
-          <Text style={[styles.copyDesc, { flex: 1 }]}>
-            {lang === 'ru' ? src[k].name.ru : src[k].name.en}
-          </Text>
-          <TextInput
-            style={[styles.inputMono, { width: 40, textAlign: 'center', paddingVertical: 4 }]}
-            value={src[k].n}
-            onChangeText={(v) => setSrc((s) => ({ ...s, [k]: { ...s[k], n: v.replace(/[^0-9]/g, '') } }))}
-            keyboardType="number-pad"
-            placeholder="0"
-            placeholderTextColor="rgba(255,255,255,0.3)"
-          />
-          <Text style={styles.unitLbl}>×</Text>
-          <TextInput
-            style={[styles.inputMono, { width: 48, textAlign: 'center', paddingVertical: 4 }]}
-            value={src[k].rw}
-            onChangeText={(v) => setSrc((s) => ({ ...s, [k]: { ...s[k], rw: v.replace(/[^0-9]/g, '') } }))}
-            keyboardType="number-pad"
-          />
-          <Text style={styles.unitLbl}>rWm</Text>
+      {/* источники / нагрузка парами */}
+      <View style={s.dual}>
+        <View style={s.col}>
+          <Text style={s.colTitle}>{lang === 'ru' ? 'ИСТОЧНИКИ' : 'SOURCES'}</Text>
+          {Object.entries(src).map(([k, obj]) => (
+            <View key={k} style={s.card}>
+              <Text style={{ fontSize: 14 }}>{obj.ic}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.cardName}>{lang === 'ru' ? obj.name.ru : obj.name.en}</Text>
+                <Text style={s.cardSub}>{parseNum(obj.rw, 0)} rWm / шт</Text>
+              </View>
+              <TextInput style={s.cardIn} value={obj.n} onChangeText={(v) => setSrc((s) => ({ ...s, [k]: { ...s[k], n: v.replace(/[^0-9]/g, '') } }))} keyboardType="number-pad" />
+            </View>
+          ))}
         </View>
-      ))}
+        <View style={s.col}>
+          <Text style={s.colTitle}>{lang === 'ru' ? 'НАГРУЗКА' : 'LOAD'}</Text>
+          {Object.entries(load).map(([k, obj]) => (
+            <View key={k} style={s.card}>
+              <Text style={{ fontSize: 14 }}>{obj.ic}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.cardName}>{lang === 'ru' ? obj.name.ru : obj.name.en}</Text>
+                <Text style={s.cardSub}>{parseNum(obj.rw, 0)} rWm / шт</Text>
+              </View>
+              <TextInput style={s.cardIn} value={obj.n} onChangeText={(v) => setLoad((l) => ({ ...l, [k]: { ...l[k], n: v.replace(/[^0-9]/g, '') } }))} keyboardType="number-pad" />
+            </View>
+          ))}
+        </View>
+      </View>
 
-      <Text style={styles.subsection}>{lang === 'ru' ? 'НАГРУЗКА' : 'LOAD'}</Text>
-      {Object.keys(load).map((k) => (
-        <View key={k} style={styles.copyRow}>
-          <Text style={{ fontSize: 15, marginRight: 6 }}>{load[k].ic}</Text>
-          <Text style={[styles.copyDesc, { flex: 1 }]}>
-            {lang === 'ru' ? load[k].name.ru : load[k].name.en}
-          </Text>
-          <TextInput
-            style={[styles.inputMono, { width: 40, textAlign: 'center', paddingVertical: 4 }]}
-            value={load[k].n}
-            onChangeText={(v) => setLoad((l) => ({ ...l, [k]: { ...l[k], n: v.replace(/[^0-9]/g, '') } }))}
-            keyboardType="number-pad"
-            placeholder="0"
-            placeholderTextColor="rgba(255,255,255,0.3)"
-          />
-          <Text style={styles.unitLbl}>×</Text>
-          <TextInput
-            style={[styles.inputMono, { width: 48, textAlign: 'center', paddingVertical: 4 }]}
-            value={load[k].rw}
-            onChangeText={(v) => setLoad((l) => ({ ...l, [k]: { ...l[k], rw: v.replace(/[^0-9]/g, '') } }))}
-            keyboardType="number-pad"
-          />
-          <Text style={styles.unitLbl}>rWm</Text>
-        </View>
-      ))}
+      <Text style={s.disclaimer}>
+        {lang === 'ru'
+          ? '≈ Единицы Rust-электрики (rWm). Ветряк плавает от погоды — среднее значение; батарея сглаживает проседания. Батарея на сколько хватит = ёмкость ÷ дефицит. Цифры редактируемые, сверяй на своём сервере.'
+          : '≈ Rust electric units (rWm). Wind output floats with weather — average shown; battery smooths dips. Battery life = capacity ÷ deficit. Editable, verify on your server.'}
+      </Text>
     </GlassCard>
   );
 }
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
+  title: { color: eventPalette.orange, fontSize: 15, fontWeight: '800', textAlign: 'center', marginBottom: 4 },
+  sub: { color: colors.textMuted, fontSize: 11, textAlign: 'center', marginBottom: 10 },
+  balance: {
+    backgroundColor: 'rgba(0,0,0,0.35)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 10, padding: 10, alignItems: 'center', marginBottom: 10,
+  },
+  balanceWarn: { borderColor: eventPalette.red },
+  balLabel: { color: colors.textPrimary, fontSize: 12, fontWeight: '700' },
+  balNum: { color: '#fff', fontSize: 17, fontWeight: '800', marginVertical: 2 },
+  balSub: { fontSize: 11, fontWeight: '600' },
+  batHours: { color: '#ffd54f', fontSize: 11.5, fontWeight: '700', marginTop: 4 },
+  dual: { flexDirection: 'row', gap: 8, marginBottom: 8 },
+  col: { flex: 1 },
+  colTitle: { color: eventPalette.orange, fontSize: 11, fontWeight: '800', letterSpacing: 0.5, marginBottom: 6 },
+  card: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10, padding: 8, marginBottom: 6,
+  },
+  cardName: { color: colors.textPrimary, fontSize: 11.5, fontWeight: '600' },
+  cardSub: { color: colors.textMuted, fontSize: 10 },
+  cardIn: {
+    color: '#fff', fontSize: 13, fontWeight: '600', textAlign: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 6, width: 44, paddingVertical: 4,
+  },
+  disclaimer: { color: colors.textMuted, fontSize: 10, lineHeight: 14, marginTop: 6 },
+});
   screenTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 10 },
   // ── Code Breaker: клавиатура и копилка кодов (макет reference) ──
   kbTopRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },

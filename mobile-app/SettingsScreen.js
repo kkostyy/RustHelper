@@ -424,7 +424,6 @@ function CloudBackupSection({ lang, source, onChangeDash, setLang }) {
       )}
     </GlassCard>
 
-    {/* Подраздел: Аккаунты */}
     <GlassCard>
       <Text style={styles.screenTitle}>{lang === 'ru' ? '👤 Аккаунт' : '👤 Account'}</Text>
       <Text style={styles.subsection}>{lang === 'ru' ? 'Создание / вход — локально (AsyncStorage)' : 'Create / sign in — local (AsyncStorage)'}</Text>
@@ -435,7 +434,6 @@ function CloudBackupSection({ lang, source, onChangeDash, setLang }) {
       <Text style={{ color: eventPalette.blue, fontSize: 12, fontWeight: '700', marginTop: 4 }}>{lang === 'ru' ? '→ Регистрация / вход пока заглушка; реальные аккаунты — в следующем обновлении.' : '→ Registration / login stub only; real accounts in next update.'}</Text>
     </GlassCard>
 
-    {/* Подраздел: Админ-панель */}
     <GlassCard>
       <Text style={styles.screenTitle}>{lang === 'ru' ? '🔐 Админ-панель' : '🔐 Admin Panel'}</Text>
       <Text style={{ color: colors.textMuted, fontSize: 11, marginBottom: 6 }}>

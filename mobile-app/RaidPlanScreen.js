@@ -13,7 +13,7 @@
 // от материала и патчей — значения правятся в таблицах ниже.
 // ─────────────────────────────────────────────────────────
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image } from 'react-native';
 import { colors, eventPalette } from './theme';
 import { GlassCard } from './ui';
 
@@ -47,19 +47,23 @@ const PARTS = [
 ];
 
 const ALL_BUILDINGS = [];
-MATS.forEach((m) => PARTS.forEach((p) => {
-  ALL_BUILDINGS.push({
-    id: p.id + '_' + m.id,
-    ic: p.ic,
-    hp: m.hp,
-    mat: m.id === 'armored' ? 'hqm' : m.id,
-    name: { ru: p.ru + ' из ' + m.ru, en: m.en + ' ' + p.en },
+MATS.forEach((m) => {
+  const icon = m.id === 'wood' ? '../docs/walls/twig-wall.avif' : m.id === 'stone' ? '../docs/walls/stone-wall.avif' : m.id === 'metal' ? '../docs/walls/metal-wall.avif' : '../docs/walls/armored-wall.avif';
+  PARTS.forEach((p) => {
+    ALL_BUILDINGS.push({
+      id: p.id + '_' + m.id,
+      ic: p.ic,
+      wallIcon: icon,
+      hp: m.hp,
+      mat: m.id === 'armored' ? 'hqm' : m.id,
+      name: { ru: p.ru + ' из ' + m.ru, en: m.en + ' ' + p.en },
+    });
   });
-}));
+});
 [
   { id: 'woodDoor',    ic: '🚪', hp: 200, mat: 'wood',  name: { ru: 'Деревянная дверь',      en: 'Wooden Door' } },
-  { id: 'sheetDoor',   ic: '🚪', hp: 250, mat: 'metal', name: { ru: 'Дверь (лист. металл)',  en: 'Sheet Metal Door' } },
-  { id: 'garageDoor',  ic: '🚪', hp: 600, mat: 'metal', name: { ru: 'Гаражная дверь',        en: 'Garage Door' } },
+  { id: 'sheetDoor',   ic: '🚪', hp: 250, mat: 'metal', wallIcon: '../docs/walls/metal-wall-doorway.avif', name: { ru: 'Дверь (лист. металл)',  en: 'Sheet Metal Door' } },
+  { id: 'garageDoor',  ic: '🚪', hp: 600, mat: 'metal', wallIcon: '../docs/walls/metal-wall-doorway.avif', name: { ru: 'Гаражная дверь',        en: 'Garage Door' } },
   { id: 'armoredDoor', ic: '🚪', hp: 800, mat: 'hqm',   name: { ru: 'Бронированная дверь',   en: 'Armored Door' } },
   { id: 'box',         ic: '📦', hp: 100, mat: 'wood',  name: { ru: 'Деревянный ящик',       en: 'Wooden Box' } },
   { id: 'custom',      ic: '📏', hp: 500, mat: 'stone', custom: true, name: { ru: 'Своё (ввести HP)', en: 'Custom (enter HP)' } },
@@ -299,7 +303,11 @@ export function RaidPlanScreen({ lang = 'ru' }) {
       {calc.map((r, idx) => (
         <View key={r.bid + idx} style={st.row}>
           <View style={st.rowLeft}>
-            <Text style={st.rowIc}>{r.b.ic}</Text>
+            {r.b.wallIcon ? (
+              <Image source={require(r.b.wallIcon)} style={{ width: 26, height: 26, borderRadius: 6, resizeMode: 'contain' }} />
+            ) : (
+              <Text style={st.rowIc}>{r.b.ic}</Text>
+            )}
             <Text style={st.rowN}>{'×' + r.n}</Text>
           </View>
           <View style={{ flex: 1 }}>
@@ -559,7 +567,11 @@ export function EcoRaidScreen({ lang = 'ru' }) {
       {calc.map((r, idx) => (
         <View key={r.bid + idx} style={st.row}>
           <View style={st.rowLeft}>
-            <Text style={st.rowIc}>{r.b.ic}</Text>
+            {r.b.wallIcon ? (
+              <Image source={require(r.b.wallIcon)} style={{ width: 26, height: 26, borderRadius: 6, resizeMode: 'contain' }} />
+            ) : (
+              <Text style={st.rowIc}>{r.b.ic}</Text>
+            )}
             <Text style={st.rowN}>{'×' + r.n}</Text>
           </View>
           <View style={{ flex: 1 }}>

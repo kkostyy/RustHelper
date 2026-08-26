@@ -387,8 +387,9 @@ function CloudBackupSection({ lang, source, onChangeDash, setLang }) {
 
   if (!source || source.mode !== 'firebase') return null;
   return (
-    <GlassCard>
-      <SectionHeader icon="☁️" color={eventPalette.blue} title={isRu ? 'Облако: копия настроек' : 'Cloud: settings backup'} />
+    <View style={{ gap: 12 }}>
+      <GlassCard>
+        <SectionHeader icon="☁️" color={eventPalette.blue} title={isRu ? 'Облако: копия настроек' : 'Cloud: settings backup'} />
       {!ready ? (
         <Text style={styles.hint}>
           {isRu
@@ -442,6 +443,7 @@ function CloudBackupSection({ lang, source, onChangeDash, setLang }) {
       </Text>
       <AdminPanelScreen lang={lang} />
     </GlassCard>
+    </View>
   );
 }
 

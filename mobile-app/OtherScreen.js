@@ -31,11 +31,11 @@ import {
   GenesScreen,
   ExtractorsScreen,
   SulfurConverterScreen,
-  RecyclerCalcScreen,
   ElectricityScreen,
 } from './ToolsScreen';
 import { AdminPanelScreen } from './AdminPanelScreen';
 import DecayCalcScreen from './DecayCalcScreen';
+import RecyclerMachineScreen from './RecyclerMachineScreen';
 
 const PRO_CONFIGS = [
   { name: 'Shatskov', sens: '3.1', dpi: '800', fov: '90', res: '1920x1080' },
@@ -131,7 +131,7 @@ const TOOL_TOPICS = [
   { id: 'codebreaker', icon: '🔢', color: eventPalette.blue, title: 'Code Breaker', desc: { ru: 'Копилка дверных кодов + счётчик перебора', en: 'Door-code vault + brute-force counter' } },
   { id: 'genes', icon: '🌱', color: eventPalette.green, title: { ru: 'Скрещивание (ферма)', en: 'Crossbreeding (Farm)' }, desc: { ru: 'Клоны, цель и рекомендованные планы', en: 'Clones, target & recommended plans' } },
   { id: 'extractors', icon: '⛏️', color: eventPalette.purple, title: { ru: 'Экстракторы', en: 'Extractors' }, desc: { ru: 'Карьеры, вышка, водяной насос', en: 'Quarries, pump jack, water pump' } },
-  { id: 'recycler', icon: '♻️', color: eventPalette.teal, title: { ru: 'Переработка', en: 'Recycler Calculator' }, desc: { ru: 'Компоненты → металл, ВКМ и скрап', en: 'Components → metal, HQM & scrap' } },
+  { id: 'recycler', icon: '♻️', color: eventPalette.teal, title: { ru: 'Рециклер', en: 'Recycler' }, desc: { ru: '6 слотов как в игре: компоненты → ресурсы', en: '6 slots like in game: components → resources' } },
   { id: 'electricity', icon: '⚡', color: eventPalette.orange, title: { ru: 'Электрика базы', en: 'Electricity Planner' }, desc: { ru: 'Источники против нагрузки (rWm)', en: 'Sources vs base load (rWm)' } },
   { id: 'decay', icon: '🧱', color: '#a3814f', title: { ru: 'Калькулятор гниения', en: 'Decay Calculator' }, desc: { ru: 'Когда строение сгниёт полностью — и бей', en: 'When a building fully decays — strike then' } },
 ];
@@ -579,7 +579,7 @@ const TOOL_SCREENS = {
   codebreaker: CodeBreakerScreen,
   genes: GenesScreen,
   extractors: ExtractorsScreen,
-  recycler: RecyclerCalcScreen,
+  recycler: RecyclerMachineScreen,
   electricity: ElectricityScreen,
   decay: DecayCalcScreen,
 };

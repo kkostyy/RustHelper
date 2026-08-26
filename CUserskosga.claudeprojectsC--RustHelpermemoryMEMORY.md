@@ -1,0 +1,2 @@
+---
+- [Plan executed slowly](rusthelper-plan-slow.md) — pln.txt 1-21 completed; HomeScreen/MapScreen/DevicesScreen edited; new modules recycler/electricity/panic/buy/ttk/auth; UTF-8 preserved

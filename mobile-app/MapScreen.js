@@ -690,47 +690,7 @@ export default function MapTab({ lang, t, live, connected }) {
         <VendingRouteCard lang={lang} live={live} />
       </GlassCard>
 
-      <GlassCard>
-        <SectionHeader icon="💀" color={eventPalette.red} title={lang === 'ru' ? 'Лог смертей' : 'Death log'} />
-        <Text style={[styles.empty, { paddingTop: 0, marginBottom: 6 }]}>
-          {lang === 'ru'
-            ? 'Копится за сессию из смен статуса тимейтов; крестики на карте — места гибели.'
-            : 'Accumulates during the session from teammate status changes; ✕ marks on the map are death spots.'}
-        </Text>
-        {deathRows.length === 0 ? (
-          <Text style={styles.empty}>{lang === 'ru' ? 'Пока никто не умирал.' : 'Nobody has died yet.'}</Text>
-        ) : (
-          deathRows.slice(0, 15).map((d) => (
-            <View key={d.id} style={styles.deathRow}>
-              <Text style={{ fontSize: 14 }}>{d.kind === 'death' ? '💀' : '🔄'}</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.deathName}>
-                  {d.name}
-                  {' · '}
-                  {d.kind === 'death'
-                    ? lang === 'ru' ? 'погиб' : 'died'
-                    : lang === 'ru' ? 'возродился' : 'respawned'}
-                </Text>
-                <Text style={styles.deathMeta}>
-                  {d.time}
-                  {d.x != null && d.y != null
-                    ? ` · ${Math.round(d.x)}, ${Math.round(d.y)}`
-                    : ''}
-                  {' · '}
-                  {agoMin(d.ts)}
-                </Text>
-              </View>
-            </View>
-          ))
-        )}
-      </GlassCard>
-
-      {/* Аналитика смертей: часы суток, опасные квадраты, по игрокам */}
-      <GlassCard>
-        <SectionHeader icon="📊" color={eventPalette.red} title={lang === 'ru' ? 'Аналитика смертей' : 'Death analytics'} />
-        <DeathStatsSection lang={lang} live={live} />
-      </GlassCard>
-
+      {/* Лог смертей удалён по ТЗ (п.2.1) */}
       <ChatCard lang={lang} t={t} live={live} />
     </ScrollView>
   );

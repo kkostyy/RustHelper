@@ -88,7 +88,8 @@ function useLootRadarOn() {
 export default function DevicesScreen({ lang, t, live }) {
   const isLive = !!(live && live.mode !== 'mock');
   const [pendingIds, setPendingIds] = useState({});
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('switch'); // по ТЗ: не показывать все подряд
+  const [selectedIds, setSelectedIds] = useState([]); // многовыбор для группового управления
 
   // Лут-радар: тумблер + фильтр категории + поиск + развёрнутая строка
   const [radarOn, setRadarOn] = useLootRadarOn();

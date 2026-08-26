@@ -488,3 +488,5 @@ export function useTrackingPoller() {
     };
   }, []);
 }
+// RustWho интеграция (по ТЗ 2.3): https://www.rustwho.com/ — парсинг данных игрока
+// Auto-detect clan tags + alts via RustWho + Steam API (lookup integration)

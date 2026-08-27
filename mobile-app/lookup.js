@@ -21,6 +21,12 @@
 //    (без официального API, HTML-парсинг). Заглушка: функция fetchRustWho.
 // TODO: интеграция при появлении стабильного эндпоинта.
 const RUSTWHO_URL = 'https://www.rustwho.com';
+
+// ТЗ 3.2: заглушка для RustWho (парсинг HTML с rustwho.com)
+export async function fetchRustWho(playerName) {
+  // Заглушка: интеграция при появлении стабильного эндпоинта
+  return { name: playerName, source: 'rustwho', status: 'stub' };
+}
 //
 // Трекинг: список игроков в AsyncStorage, поллинг раз в 2 минуты,
 // смена онлайн-статуса = уведомление в центр (notifStore).

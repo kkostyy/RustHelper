@@ -123,7 +123,7 @@ export default function HomeScreen({ lang, t, connected, onOpenConnect, goTo, li
             </Text>
           }
         />
-        <MapCanvas height={220} compact lang={lang} lv={lv} style={{ width: '100%' }} />
+        <MapCanvas height={260} lang={lang} lv={lv} style={{ width: '100%' }} />
       </GlassCard>
       )}
 

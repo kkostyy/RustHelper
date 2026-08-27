@@ -123,6 +123,7 @@ export default function HomeScreen({ lang, t, connected, onOpenConnect, goTo, li
             </Text>
           }
         />
+// ТЗ 2.1: тап по мини-карте → открытие MapFullScreen (полная карта с зумом и перетаскиванием)
         <MapCanvas height={260} lang={lang} lv={lv} style={{ width: '100%' }} />
       </GlassCard>
       )}

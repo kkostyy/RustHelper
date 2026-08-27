@@ -48,5 +48,5 @@
 - pln 2.3 заглушка API (stub с нулями) ✅
 - pln 2.4 AdminPanel + authStub + YouTuber список ✅ (AdminPanelScreen, authStub, YT_KEY, подтверждено в 6-й партии)
 - pln 2.5 обновление данных (itemNames + docs/items + docs/shops + reference) ✅ (подтверждено в 9-й)
-- pln 2.6 дизайн (Liquid Glass + уникальный UI + эмодзи, подтверждено)
+- pln 2.6 дизайн (Liquid Glass + уникальный UI + эмодзи, подтверждено) ✅ (подтверждено в 9-й)
 - APK-сборка исправлена (shops copy, ToolsScreen синтаксис, RaidPlanScreen Image, CI, MapScreen экспорт-фикc) ✅ (CI проходит)

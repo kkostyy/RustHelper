@@ -340,7 +340,6 @@ export function RaidPlanScreen({ lang = 'ru' }) {
             {!!r.best && (
               <Text style={st.rowBest}>
                 {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')}
-                {r.best.ammo.icon ? <Image source={require(r.best.ammo.icon)} style={{ width: 14, height: 14, borderRadius: 3, resizeMode: 'contain', marginRight: 2 }} /> : r.best.ammo.ic}
                 {' ×' + fmtTh(r.best.count * r.n) + '  ≈' + fmtTh(r.best.cost * r.n) + ' 🟡'}
               </Text>
             )}
@@ -412,7 +411,6 @@ function RawView({ lang, totals, sulfurTotal, back }) {
           <View key={id} style={st.treeRoot}>
             {/* корень — боеприпас */}
             <View style={st.treeNode}>
-              <View style={st.treeIconWrap}><Image source={require(a.icon || '../docs/items 2.0/ammo.rifle.explosive.png')} style={{ width: 36, height: 36, borderRadius: 8, resizeMode: 'contain' }} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={st.treeName}>{(lang === 'ru' ? a.ru : a.en) + ' ×' + fmtTh(n)}</Text>
                 <Text style={st.treeLine}>{lang === 'ru' ? 'крафт →' : 'craft →'}</Text>
@@ -423,7 +421,6 @@ function RawView({ lang, totals, sulfurTotal, back }) {
               {rec.map((ing) => (
                 <View key={ing.k} style={st.treeBranch}>
                   <View style={{ width: 3, backgroundColor: eventPalette.orange, borderRadius: 2 }} />
-                  <Image source={require(ING[ing.k].icon || '../docs/items 2.0/component.box.sulfur.large.png')} style={{ width: 28, height: 28, borderRadius: 6, resizeMode: 'contain', marginLeft: 6 }} />
                   <Text style={st.branchTxt}>{ing.n + '× ' + (lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en) + (ing.k === 'explo' ? ' → ' + (lang === 'ru' ? 'порох + сера + лезвие + мусор' : 'powder+ sulfur+ blade+ trash') : '')}</Text>
                 </View>
               ))}
@@ -435,7 +432,6 @@ function RawView({ lang, totals, sulfurTotal, back }) {
                 {RECIPES.explo.map((ing) => (
                   <View key={ing.k} style={st.subRow}>
                     <Text style={st.subN}>{ing.n + '×'}</Text>
-                    <Image source={require(ING[ing.k].icon || '../docs/items 2.0/component.box.sulfur.large.png')} style={{ width: 22, height: 22, borderRadius: 5, resizeMode: 'contain', marginRight: 6 }} />
                     <Text style={st.subName}>{lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en}</Text>
                   </View>
                 ))}
@@ -512,7 +508,6 @@ function NodesView({ lang, back }) {
           return (
             <View key={tool.ru} style={st.toolCard}>
               <Text style={st.toolName} numberOfLines={1}>
-                {tool.icon ? <Image source={require(tool.icon)} style={{ width: 14, height: 14, borderRadius: 3, resizeMode: 'contain', marginRight: 3 }} /> : null}
                 {lang === 'ru' ? tool.ru : tool.en}
               </Text>
               <View style={st.toolChips}>
@@ -604,7 +599,6 @@ export function EcoRaidScreen({ lang = 'ru' }) {
             {!!r.best && (
               <Text style={st.rowBest}>
                 {(lang === 'ru' ? 'Лучший вариант: ' : 'Best option: ')}
-                {r.best.tool.icon ? <Image source={require(r.best.tool.icon)} style={{ width: 14, height: 14, borderRadius: 3, resizeMode: 'contain', marginRight: 2 }} /> : r.best.tool.ic}
                 {' ×' + fmtTh(r.best.hits * r.n) + '  (' + fmtDurLong(r.best.time * r.n, lang) + ')'}
               </Text>
             )}

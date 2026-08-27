@@ -33,6 +33,7 @@ import { itemName } from './data/itemNames';
 import { useVendFavs, toggleVendFav } from './vendStore';
 import { DeathStatsSection } from './deathStats';
 import ChatCard from './ChatCard';
+import MapFullScreen from './MapFullScreen'; // ТЗ 2.1: полноэкранная карта (тап по мини-карте)
 
 const SCREEN_W = Dimensions.get('window').width;
 const MAP_SIZE = SCREEN_W - 32 - 32; // минус паддинги экрана и карточки

@@ -213,6 +213,9 @@ export function riskLabel(score, lang) {
 
 // ── Skill Rose (6 осей: Aim / PvP / PvE / Farm / Build / Survival) ──
 // Данные из BattleMetrics или RustLookup (если есть ключ / API). Без ключа — эвристика по K/D, точности.
+// Заглушка API: при отсутствии данных — поля 0
+export function apiStubZero() { return { headshotPct: 0, kdRatio: 0, killRate: 0, pveScore: 0, resourceGather: 0, buildScore: 0, survivalScore: 0 }; }
+
 export function skillRose(p, lang = 'ru') {
   if (!p) return null;
   const axes = {

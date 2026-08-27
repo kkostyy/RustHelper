@@ -21,12 +21,12 @@ const fmtTh = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 
 // ── Боеприпасы: сера за 1 шт, нужен ли верстак 3, ≈ урон по материалу ──
 const AMMO = [
-  { id: 'c4',      ic: '💣', icon: '../docs/items/ammo.rifle.explosive.png', ru: 'C4',             en: 'C4',              sulfur: 2200, wb: 3, dmg: { wood: 275, stone: 275, metal: 275, hqm: 275 } },
-  { id: 'rocket',  ic: '🚀', icon: '../docs/items/ammo.rocket.basic.png', ru: 'Ракета',          en: 'Rocket',          sulfur: 1400, wb: 2, dmg: { wood: 320, stone: 137, metal: 137, hqm: 137 } },
-  { id: 'hv',      ic: '🧨', icon: '../docs/items/ammo.rocket.hv.png', ru: 'HV ракета',       en: 'HV Rocket',       sulfur: 900,  wb: 2, dmg: { wood: 110, stone: 110, metal: 110, hqm: 110 } },
-  { id: 'satchel', ic: '🎒', icon: '../docs/items/ammo.grenadelauncher.smoke.png', ru: 'Сатчел',          en: 'Satchel',         sulfur: 480,  wb: 1, dmg: { wood: 139, stone: 50, metal: 92, hqm: 46 } },
-  { id: 'beancan', ic: '🥫', icon: '../docs/items/ammo.grenadelauncher.he.png', ru: 'Бобовая бомба',   en: 'Beancan Grenade', sulfur: 180,  wb: 1, dmg: { wood: 65, stone: 20, metal: 30, hqm: 15 } },
-  { id: 'explo',   ic: '🔵', icon: '../docs/items/ammo.rifle.explosive.png', ru: 'Разрывные 5.56',  en: 'Explosive 5.56',  sulfur: 25,   wb: 2, dmg: { wood: 30, stone: 3, metal: 3, hqm: 2 } },
+  { id: 'c4',      ic: '💣', icon: '../docs/items 2.0/ammo.rifle.explosive.png', ru: 'C4',             en: 'C4',              sulfur: 2200, wb: 3, dmg: { wood: 275, stone: 275, metal: 275, hqm: 275 } },
+  { id: 'rocket',  ic: '🚀', icon: '../docs/items 2.0/ammo.rocket.basic.png', ru: 'Ракета',          en: 'Rocket',          sulfur: 1400, wb: 2, dmg: { wood: 320, stone: 137, metal: 137, hqm: 137 } },
+  { id: 'hv',      ic: '🧨', icon: '../docs/items 2.0/ammo.rocket.hv.png', ru: 'HV ракета',       en: 'HV Rocket',       sulfur: 900,  wb: 2, dmg: { wood: 110, stone: 110, metal: 110, hqm: 110 } },
+  { id: 'satchel', ic: '🎒', icon: '../docs/items 2.0/ammo.grenadelauncher.smoke.png', ru: 'Сатчел',          en: 'Satchel',         sulfur: 480,  wb: 1, dmg: { wood: 139, stone: 50, metal: 92, hqm: 46 } },
+  { id: 'beancan', ic: '🥫', icon: '../docs/items 2.0/ammo.grenadelauncher.he.png', ru: 'Бобовая бомба',   en: 'Beancan Grenade', sulfur: 180,  wb: 1, dmg: { wood: 65, stone: 20, metal: 30, hqm: 15 } },
+  { id: 'explo',   ic: '🔵', icon: '../docs/items 2.0/ammo.rifle.explosive.png', ru: 'Разрывные 5.56',  en: 'Explosive 5.56',  sulfur: 25,   wb: 2, dmg: { wood: 30, stone: 3, metal: 3, hqm: 2 } },
 ];
 
 const ammoById = (id) => AMMO.find((a) => a.id === id);
@@ -88,9 +88,9 @@ function bestAmmo(b, hp, allowWb3) {
 // ── Эко-рейд: инструменты (≈ урон за удар по материалу + мах/удар,
 //    жёсткая сторона). POWER — только во вкладке «Самый быстрый» ──
 const ECO_TOOLS = [
-  { id: 'rock',      ic: '🪨', icon: '../docs/items/barricade.stone.png', ru: 'Камень',           en: 'Rock',              swing: 1.0, dmg: { wood: 4,  stone: 1,  metal: 1,  hqm: 1 } },
+  { id: 'rock',      ic: '🪨', icon: '../docs/items 2.0/barricade.stone.png', ru: 'Камень',           en: 'Rock',              swing: 1.0, dmg: { wood: 4,  stone: 1,  metal: 1,  hqm: 1 } },
   { id: 'sthatchet', ic: '🪓', icon: '../docs/items/box.wooden.json', ru: 'Каменный топор',   en: 'Stone Hatchet',     swing: 1.0, dmg: { wood: 10, stone: 3,  metal: 2,  hqm: 1 } },
-  { id: 'hatchet',   ic: '🪓', icon: '../docs/items/box.wooden.large.component.charcoal.skin.png', ru: 'Топор',            en: 'Hatchet',           swing: 1.0, dmg: { wood: 15, stone: 4,  metal: 3,  hqm: 2 } },
+  { id: 'hatchet',   ic: '🪓', icon: '../docs/items 2.0/box.wooden.large.component.charcoal.skin.png', ru: 'Топор',            en: 'Hatchet',           swing: 1.0, dmg: { wood: 15, stone: 4,  metal: 3,  hqm: 2 } },
   { id: 'stpick',    ic: '⛏️', ru: 'Каменная кирка',   en: 'Stone Pickaxe',     swing: 1.0, dmg: { wood: 6,  stone: 6,  metal: 3,  hqm: 2 } },
   { id: 'pick',      ic: '⛏️', ru: 'Кирка',            en: 'Pickaxe',           swing: 1.0, dmg: { wood: 8,  stone: 12, metal: 5,  hqm: 3 } },
   { id: 'sicepick',  ic: '⛏️', ru: 'Самод. ледоруб',   en: 'Salvaged Icepick',  swing: 0.9, dmg: { wood: 10, stone: 16, metal: 7,  hqm: 4 } },
@@ -404,7 +404,7 @@ function RawView({ lang, totals, sulfurTotal, back }) {
           <View key={id} style={st.treeRoot}>
             {/* корень — боеприпас */}
             <View style={st.treeNode}>
-              <View style={st.treeIconWrap}><Image source={require(a.icon || '../docs/items/ammo.rifle.explosive.png')} style={{ width: 36, height: 36, borderRadius: 8, resizeMode: 'contain' }} /></View>
+              <View style={st.treeIconWrap}><Image source={require(a.icon || '../docs/items 2.0/ammo.rifle.explosive.png')} style={{ width: 36, height: 36, borderRadius: 8, resizeMode: 'contain' }} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={st.treeName}>{(lang === 'ru' ? a.ru : a.en) + ' ×' + fmtTh(n)}</Text>
                 <Text style={st.treeLine}>{lang === 'ru' ? 'крафт →' : 'craft →'}</Text>
@@ -415,7 +415,7 @@ function RawView({ lang, totals, sulfurTotal, back }) {
               {rec.map((ing) => (
                 <View key={ing.k} style={st.treeBranch}>
                   <View style={{ width: 3, backgroundColor: eventPalette.orange, borderRadius: 2 }} />
-                  <Image source={require(ING[ing.k].icon || '../docs/items/component.box.sulfur.large.png')} style={{ width: 28, height: 28, borderRadius: 6, resizeMode: 'contain', marginLeft: 6 }} />
+                  <Image source={require(ING[ing.k].icon || '../docs/items 2.0/component.box.sulfur.large.png')} style={{ width: 28, height: 28, borderRadius: 6, resizeMode: 'contain', marginLeft: 6 }} />
                   <Text style={st.branchTxt}>{ing.n + '× ' + (lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en) + (ing.k === 'explo' ? ' → ' + (lang === 'ru' ? 'порох + сера + лезвие + мусор' : 'powder+ sulfur+ blade+ trash') : '')}</Text>
                 </View>
               ))}
@@ -427,7 +427,7 @@ function RawView({ lang, totals, sulfurTotal, back }) {
                 {RECIPES.explo.map((ing) => (
                   <View key={ing.k} style={st.subRow}>
                     <Text style={st.subN}>{ing.n + '×'}</Text>
-                    <Image source={require(ING[ing.k].icon || '../docs/items/component.box.sulfur.large.png')} style={{ width: 22, height: 22, borderRadius: 5, resizeMode: 'contain', marginRight: 6 }} />
+                    <Image source={require(ING[ing.k].icon || '../docs/items 2.0/component.box.sulfur.large.png')} style={{ width: 22, height: 22, borderRadius: 5, resizeMode: 'contain', marginRight: 6 }} />
                     <Text style={st.subName}>{lang === 'ru' ? ING[ing.k].ru : ING[ing.k].en}</Text>
                   </View>
                 ))}

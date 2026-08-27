@@ -46,6 +46,8 @@ jobs:
           cp mobile-app/*.js RustCompanionMobile/
           mkdir -p RustCompanionMobile/data
           cp mobile-app/data/*.js RustCompanionMobile/data/
+          mkdir -p RustCompanionMobile/shops
+          cp mobile-app/shops/*.js RustCompanionMobile/shops/
 
       - name: Install dependencies
         working-directory: RustCompanionMobile

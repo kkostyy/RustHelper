@@ -757,7 +757,7 @@ export function SulfurConverterScreen({ lang }) {
 // ═══════════════════════════════════════════════════════════
 export function ElectricityScreen({ lang }) {
   const [src, setSrc] = useState({
-    wind: { ic: '🌬️', icon: '../docs/items/advancedwarmingtea.png', name: { ru: 'Ветряк (сред.)', en: 'Wind Turbine (avg)' }, n: '1', rw: '150' },
+    wind: { ic: '🌬️', icon: '../docs/items 2.0/advancedwarmingtea.png', name: { ru: 'Ветряк (сред.)', en: 'Wind Turbine (avg)' }, n: '1', rw: '150' },
     gen: { ic: '⛽', name: { ru: 'Генератор', en: 'Small Generator' }, n: '0', rw: '20' },
     battery: { ic: '🔋', name: { ru: 'Большая батарея', en: 'Large Battery' }, n: '1', rw: '100' },
   });

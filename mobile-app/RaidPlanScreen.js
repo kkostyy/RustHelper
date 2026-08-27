@@ -30,15 +30,6 @@ const AMMO = [
 ];
 
 const ammoById = (id) => AMMO.find((a) => a.id === id);
-const ICON_MAP = {
-  c4: require("../docs/items 2.0/ammo.rifle.explosive.png"),
-  rocket: require("../docs/items 2.0/ammo.rocket.basic.png"),
-  hv: require("../docs/items 2.0/ammo.rocket.hv.png"),
-  satchel: require("../docs/items 2.0/ammo.grenadelauncher.smoke.png"),
-  beancan: require("../docs/items 2.0/ammo.grenadelauncher.he.png"),
-  explo: require("../docs/items 2.0/ammo.rifle.explosive.png"),
-};
-
 // ── Строения: тиры × части + двери/ящик/своё. HP тира одинаково
 //    для стены/фундамента/пола/крыши (≈ ваниль) ──
 const MATS = [
@@ -302,7 +293,7 @@ export function RaidPlanScreen({ lang = 'ru' }) {
             const a = ammoById(id);
             return (
               <Text key={id} style={st.totalItem}>
-                {a.icon ? <Image source={ICON_MAP[a.id]} style={{ width: 16, height: 16, borderRadius: 4, resizeMode: 'contain', marginRight: 2 }} /> : a.ic}
+                {a.ic}
                 {' ×' + fmtTh(n)}
               </Text>
             );

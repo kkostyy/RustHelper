@@ -23,6 +23,11 @@ import { GlassCard, SectionHeader, Segmented } from './ui';
 import { analyzeSmelting } from './smeltCalc';
 import { LOOT_CATS, lootInfo } from './data/lootCats';
 
+// ТЗ 2.2: мультивыбор выключателей + групповое вкл/выкл — заглушка функции
+function toggleGroupSwitches(switchIds, value) {
+  // Групповое управление: переключить все выбранные выключатели одновременно
+  return; // заглушка для будущей реализации
+}
 function fmtDuration(sec) {
   if (!sec || sec <= 0) return '—';
   const d = Math.floor(sec / 86400);

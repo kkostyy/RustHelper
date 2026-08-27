@@ -861,7 +861,6 @@ const s = StyleSheet.create({
     borderRadius: 6, width: 44, paddingVertical: 4,
   },
   disclaimer: { color: colors.textMuted, fontSize: 10, lineHeight: 14, marginTop: 6 },
-});
   screenTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 10 },
   // ── Code Breaker: клавиатура и копилка кодов (макет reference) ──
   kbTopRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
